@@ -1,0 +1,54 @@
+*thrasher.txt* A heavy-metal music player for vim
+
+Author:  Paul Meinhardt <https://github.com/pmeinhardt>
+License: –
+
+                                                       ,'
+                                                    .c0:
+                                                  .dNX'
+                                   ..           ,kMM0.
+                                  'KX'       .cKMMMd.
+                                 :WMMWl.   .oNMMMWc
+                               .xMMMMMM0.,kWMMMMN,
+                              .KMMMMMMMMMMMMMMM0.
+                             ;NMMMMMMMMMMMMMMMx.
+                           .oMMMMMMXMMMMMMMMWl
+                          .0MMMMWk' cWMMMMMN,
+                         ,NMMMXl.    ,NMMMK.
+                        oMMMO;.       .0Mk.
+                      .OMWd.           .;
+                     'XKc.
+                    ck,
+                   ..
+
+INTRODUCTION                                    *thrasher*
+
+COMMANDS                                        *thrasher-commands*
+
+                                                *thrasher-:Thrasher*
+:Thrasher [args]        Run ... open graphical interface.
+
+                                                *thrasher-:ThrasherStatus*
+:ThrasherStatus         Display the current player status and track details.
+
+                                                *thrasher-:ThrasherPlay*
+:ThrasherPlay [args]    Play the current track or the specified track or file.
+
+                                                *thrasher-:ThrasherPause*
+:ThrasherPause          Pause playback.
+
+                                                *thrasher-:ThrasherStop*
+:ThrasherStop           Stop playback.
+
+                                                *thrasher-:ThrasherNext*
+:ThrasherNext           Advance to the next track in the current playlist.
+
+                                                *thrasher-:ThrasherPrev*
+:ThrasherPrev           Return to the previous track in the current playlist.
+
+MAPPINGS                                        *thrasher-mappings*
+
+ABOUT                                           *thrasher-about*
+
+Grab the latest version or report a bug on GitHub:
+https://github.com/pmeinhardt/thrasher
