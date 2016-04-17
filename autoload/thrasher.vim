@@ -6,85 +6,124 @@ if exists("g:autoloaded_thrasher")
 endif
 let g:autoloaded_thrasher = 1
 
-function! s:jxa(code)
-  return system("echo \"" . a:code . "\" | osascript -l JavaScript")
-endfunction
-
-function! s:search(q)
-  let output = s:jxa("function run(argv) { var app = Application('iTunes'); var lib = app.playlists.byName('Library'); var res = lib.search({for: 'Metallica', in: 'artists'}); return res.map(function (t) { return t.name(); }); }")
-  return output
-endfunction
-
-function! thrasher#status()
-  let output = s:jxa("function run(argv) { var app = Application('iTunes'); var track = app.currentTrack(); return app.playerState() + ': ' + [track.name(), track.album(), track.artist()].join(' // '); }")
-  echom substitute(output, "\n$", "", "")
-  echom s:search("Metallica")
-endfunction
-
-function! thrasher#play()
-  let error = s:jxa("function run(argv) { var app = Application('iTunes'); var lib = app.playlists.byName('Library'); var tracks = lib.tracks.whose({artist: 'Metallica'}); return app.play(tracks[0]); }")
-endfunction
-
-function! thrasher#pause()
-  let error = s:jxa("function run(argv) { var app = Application('iTunes'); return app.pause(); }")
-endfunction
-
-function! thrasher#stop()
-  let error = s:jxa("function run(argv) { var app = Application('iTunes'); return app.stop(); }")
-endfunction
-
-function! thrasher#next()
-  let error = s:jxa("function run(argv) { var app = Application('iTunes'); return app.nextTrack(); }")
-endfunction
-
-function! thrasher#prev()
-  let error = s:jxa("function run(argv) { var app = Application('iTunes'); return app.previousTrack(); }")
-endfunction
-
-" let g:ThrasherLogo = [
-"   \ "                                    ,'",
-"   \ "                                 .c0: ",
-"   \ "                               .dNX'  ",
-"   \ "                ..           ,kMM0.   ",
-"   \ "               'KX'       .cKMMMd.    ",
-"   \ "              :WMMWl.   .oNMMMWc      ",
-"   \ "            .xMMMMMM0.,kWMMMMN,       ",
-"   \ "           .KMMMMMMMMMMMMMMM0.        ",
-"   \ "          ;NMMMMMMMMMMMMMMMx.         ",
-"   \ "        .oMMMMMMXMMMMMMMMWl           ",
-"   \ "       .0MMMMWk' cWMMMMMN,            ",
-"   \ "      ,NMMMXl.    ,NMMMK.             ",
-"   \ "     oMMMO;.       .0Mk.              ",
-"   \ "   .OMWd.           .;                ",
-"   \ "  'XKc.                               ",
-"   \ " ck,                                  ",
-"   \ "..                                    "
-"   \ ]
+" Configuration
 
 let g:ThrasherBufName = "thrasher"
 
-function! thrasher#show()
-  silent! execute "edit " . g:ThrasherBufName
+let g:ThrasherState = {"player": "itunes"}
 
-  setlocal noswapfile
+" Actions
+
+function! thrasher#status()
+  return thrasher#itunes#status()
+endfunction
+
+function! thrasher#play()
+  return thrasher#itunes#play()
+endfunction
+
+function! thrasher#pause()
+  return thrasher#itunes#pause()
+endfunction
+
+function! thrasher#stop()
+  return thrasher#itunes#stop()
+endfunction
+
+function! thrasher#next()
+  return thrasher#itunes#next()
+endfunction
+
+function! thrasher#prev()
+  return thrasher#itunes#prev()
+endfunction
+
+function! thrasher#run()
+  if exists("s:active") | return 0 | endif
+  let s:active = 1
+
+  noautocmd call s:open()
+  call s:render({})
+
+  return 1
+endfunction
+
+function! thrasher#exit()
+  if bufnr("%") ==# s:bufnr && bufname("%") ==# "thrasher"
+    noautocmd call s:close()
+  endif
+endfunction
+
+function! s:open()
+  " open new window (bottom)
+  silent! execute "keepa botright 1new " . g:ThrasherBufName
+
+  let s:bufnr = bufnr("%")
+  let s:winw = winwidth(0)
+
+  " remove all abbreviations
+  abclear <buffer>
+
+  " setup buffer
+  setlocal bufhidden=unload
   setlocal buftype=nofile
-  setlocal bufhidden=hide
-  setlocal nowrap
   setlocal foldcolumn=0
+  setlocal foldlevel=99
   setlocal foldmethod=manual
-  setlocal nofoldenable
   setlocal nobuflisted
+  setlocal nocursorcolumn
+  setlocal nofoldenable
+  setlocal nolist
+  setlocal nonumber
+  setlocal norelativenumber
   setlocal nospell
-  setlocal nonu
-  setlocal nornu
+  setlocal noswapfile
+  setlocal noundofile
+  setlocal nowrap
+  setlocal textwidth=0
+  setlocal winfixheight
 
-  iabc <buffer>
-
-  let i = 1
-  for l in g:ThrasherLogo
-    call setline(i, l)
-    let i += 1
-  endfor
-
+  " set custom filetype
   setlocal filetype=thrasher
+
+  " install key mappings
+  nnoremap <buffer> <silent> <esc> :call <SID>close()<cr>
+  nnoremap <buffer> <silent> <c-c> :call <SID>close()<cr>
+endfunction
+
+function! s:close()
+  bunload! "" . g:ThrasherBufName
+  unlet! s:active s:bufnr s:winw
+  echo
+endfunction
+
+" Rendering
+
+function! s:render(status)
+  setlocal modifiable
+
+  " render track list
+  let tracks = ["Whiplash", "Hit The Lights", "No Remorse"]
+  let length = len(tracks)
+
+  silent! execute "%d _ | res" length
+
+  if empty(tracks)
+    "
+  else
+    let i = 1
+    for t in tracks
+      call setline(i, t)
+      let i += 1
+    endfor
+  endif
+
+  " adapt status line
+  let &l:stl = "library search"
+
+  " render prompt
+  echon ">>> "
+  echon "_"
+
+  setlocal nomodifiable
 endfunction
