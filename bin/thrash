@@ -1,2 +1,2 @@
 #!/bin/sh
-vim -c "Thrasher"
+exec vim -c "Thrasher"
