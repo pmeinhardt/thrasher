@@ -8,18 +8,25 @@ let g:autoloaded_thrasher = 1
 
 " Configuration
 
-let g:ThrasherBufName = "thrasher"
+let s:bufname = "thrasher"
 
-let g:ThrasherState = {"player": "itunes"}
+let s:state = {
+  \   "player": "itunes",
+  \   "input": ""
+  \ }
 
 " Actions
 
-function! thrasher#status()
-  return thrasher#itunes#status()
-endfunction
+function! thrasher#play(...)
+  let query = {}
 
-function! thrasher#play()
-  return thrasher#itunes#play()
+  if a:0 > 0
+    let query.artist = "metallica"
+    let query.album = ""
+    let query.track = ""
+  endif
+
+  return thrasher#itunes#play(query)
 endfunction
 
 function! thrasher#pause()
@@ -38,7 +45,15 @@ function! thrasher#prev()
   return thrasher#itunes#prev()
 endfunction
 
-function! thrasher#run()
+function! thrasher#status()
+  let status = thrasher#itunes#status()
+  " format and display status information
+  echo status
+endfunction
+
+" Interface
+
+function! thrasher#run(...)
   if exists("s:active") | return 0 | endif
   let s:active = 1
 
@@ -56,7 +71,7 @@ endfunction
 
 function! s:open()
   " open new window (bottom)
-  silent! execute "keepa botright 1new " . g:ThrasherBufName
+  silent! execute "keepa botright 1new " . s:bufname
 
   let s:bufnr = bufnr("%")
   let s:winw = winwidth(0)
@@ -89,17 +104,22 @@ function! s:open()
   " install key mappings
   nnoremap <buffer> <silent> <esc> :call <SID>close()<cr>
   nnoremap <buffer> <silent> <c-c> :call <SID>close()<cr>
+
+  " nnoremap <buffer> <silent> <cr> :call thrasher#play({})<cr>
+
+  " accept input
+  call s:keyloop()
 endfunction
 
 function! s:close()
-  bunload! "" . g:ThrasherBufName
+  bunload! "" . s:bufname
   unlet! s:active s:bufnr s:winw
   echo
 endfunction
 
 " Rendering
 
-function! s:render(status)
+function! s:render(state)
   setlocal modifiable
 
   " render track list
@@ -119,11 +139,39 @@ function! s:render(status)
   endif
 
   " adapt status line
-  let &l:stl = "library search"
+  let &l:statusline = "library search"
 
   " render prompt
   echon ">>> "
+  echon a:state.input
   echon "_"
 
   setlocal nomodifiable
+endfunction
+
+" Prompt
+
+function! s:keyloop()
+  let [tve, guicursor] = [&t_ve, &guicursor]
+  while exists("s:active")
+    try
+      set t_ve=
+      set guicursor=a:NONE
+      let nr = getchar()
+    finally
+      let &t_ve = tve
+      let &guicursor = guicursor
+    endtry
+    let char = !type(nr) ? nr2char(nr) : nr
+    if nr >=# 0x20
+      call s:promptadd(char)
+    else
+    endif
+  endwhile
+endfunction
+
+function! s:promptadd(char)
+  let s:state.input .= a:char
+  echo s:state
+  call s:render(s:state)
 endfunction

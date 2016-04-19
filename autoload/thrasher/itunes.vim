@@ -9,7 +9,8 @@ let g:loaded_thrasher_itunes = 1
 " JavaScript for Automation helpers (Mac OS X)
 
 function! s:jxa(code)
-  return system("echo \"" . a:code . "\" | osascript -l JavaScript")
+  let stdout = system("echo \"" . a:code . "\" | osascript -l JavaScript")
+  return substitute(stdout, "\n$", "", "")
 endfunction
 
 function! s:search(q)
@@ -19,13 +20,11 @@ endfunction
 
 " Thrasher commands (iTunes OS X)
 
-function! thrasher#itunes#status()
-  let output = s:jxa("function run(argv) { var app = Application('iTunes'); var track = app.currentTrack(); return app.playerState() + ': ' + [track.name(), track.album(), track.artist()].join(' // '); }")
-  " echom substitute(output, "\n$", "", "")
-endfunction
-
-function! thrasher#itunes#play()
-  let error = s:jxa("function run(argv) { var app = Application('iTunes'); var lib = app.playlists.byName('Library'); var tracks = lib.tracks.whose({artist: 'Metallica'}); return app.play(tracks[0]); }")
+function! thrasher#itunes#play(query)
+  if !empty(a:query)
+    return s:jxa("function run(argv) { var app = Application('iTunes'); var lib = app.playlists.byName('Library'); var tracks = lib.tracks.whose({artist: 'Metallica'}); return app.play(tracks[0]); }")
+  endif
+  return s:jxa("function run(argv) { var app = Application('iTunes'); return app.play(); }")
 endfunction
 
 function! thrasher#itunes#pause()
@@ -42,4 +41,8 @@ endfunction
 
 function! thrasher#itunes#prev()
   let error = s:jxa("function run(argv) { var app = Application('iTunes'); return app.previousTrack(); }")
+endfunction
+
+function! thrasher#itunes#status()
+  return s:jxa("function run(argv) { var app = Application('iTunes'); var track = app.currentTrack(); return app.playerState() + ': ' + [track.name(), track.album(), track.artist()].join(' // '); }")
 endfunction
