@@ -31,6 +31,10 @@ function! thrasher#itunes#pause()
   let error = s:jxa("function run(argv) { var app = Application('iTunes'); return app.pause(); }")
 endfunction
 
+function! thrasher#itunes#toggle()
+  let error = s:jxa("function run(argv) { var app = Application('iTunes'); return app.playpause(); }")
+endfunction
+
 function! thrasher#itunes#stop()
   let error = s:jxa("function run(argv) { var app = Application('iTunes'); return app.stop(); }")
 endfunction

@@ -6,10 +6,11 @@ if exists("g:loaded_thrasher") || v:version < 700
 endif
 let g:loaded_thrasher = 1
 
-command! -nargs=* Thrasher         call thrasher#run(<f-args>)
+command! -nargs=0 Thrasher         call thrasher#run()
 
 command! -nargs=* ThrasherPlay     call thrasher#play(<f-args>)
 command! -nargs=0 ThrasherPause    call thrasher#pause()
+command! -nargs=0 ThrasherToggle   call thrasher#toggle()
 command! -nargs=0 ThrasherStop     call thrasher#stop()
 command! -nargs=0 ThrasherNext     call thrasher#next()
 command! -nargs=0 ThrasherPrev     call thrasher#prev()

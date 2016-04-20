@@ -23,19 +23,21 @@ License: –
 
 INTRODUCTION                                    *thrasher*
 
+"It's all about control and if you can take it" -- Motörhead
+
 COMMANDS                                        *thrasher-commands*
 
                                                 *thrasher-:Thrasher*
-:Thrasher [args]        Run ... open graphical interface.
-
-                                                *thrasher-:ThrasherStatus*
-:ThrasherStatus         Display the current player status and track details.
+:Thrasher               Run the graphical thrasher interface.
 
                                                 *thrasher-:ThrasherPlay*
 :ThrasherPlay [args]    Play the current track or the specified track or file.
 
                                                 *thrasher-:ThrasherPause*
 :ThrasherPause          Pause playback.
+
+                                                *thrasher-:ThrasherToggle*
+:ThrasherToggle         Toggle play/pause.
 
                                                 *thrasher-:ThrasherStop*
 :ThrasherStop           Stop playback.
@@ -45,6 +47,9 @@ COMMANDS                                        *thrasher-commands*
 
                                                 *thrasher-:ThrasherPrev*
 :ThrasherPrev           Return to the previous track in the current playlist.
+
+                                                *thrasher-:ThrasherStatus*
+:ThrasherStatus         Display the current player status and track details.
 
 MAPPINGS                                        *thrasher-mappings*
 

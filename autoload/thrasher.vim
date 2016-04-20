@@ -33,6 +33,10 @@ function! thrasher#pause()
   return thrasher#itunes#pause()
 endfunction
 
+function! thrasher#toggle()
+  return thrasher#itunes#toggle()
+endfunction
+
 function! thrasher#stop()
   return thrasher#itunes#stop()
 endfunction
