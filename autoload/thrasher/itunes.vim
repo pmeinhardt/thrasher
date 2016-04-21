@@ -47,7 +47,7 @@ function! thrasher#itunes#next()
 endfunction
 
 function! thrasher#itunes#prev()
-  let error = s:jxa("function run(argv) { var app = Application('iTunes'); return app.previousTrack(); }")
+  let error = s:jxa("function run(argv) { var app = Application('iTunes'); return app.backTrack(); }")
 endfunction
 
 function! thrasher#itunes#status()
