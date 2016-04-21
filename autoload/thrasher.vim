@@ -161,11 +161,11 @@ function! s:open()
   nnoremap <buffer> <silent> <esc>    :call thrasher#exit()<cr>
   nnoremap <buffer> <silent> <c-c>    :call thrasher#exit()<cr>
 
-  " nnoremap <buffer> <silent> <cr>     :call thrasher#play({ ... })<cr>
-
   nnoremap <buffer> <silent> <c-g>    :call thrasher#toggle()<cr>
   nnoremap <buffer> <silent> <c-f>    :call thrasher#next()<cr>
   nnoremap <buffer> <silent> <c-b>    :call thrasher#prev()<cr>
+
+  " nnoremap <buffer> <silent> <cr>     :call <sid>accept()<cr>
 
   nnoremap <buffer> <silent> <c-j>    :call <sid>movedown()<cr>
   nnoremap <buffer> <silent> <down>   :call <sid>movedown()<cr>
@@ -181,7 +181,14 @@ function! s:open()
   nnoremap <buffer> <silent> <del>    :call <sid>delchar()<cr>
   nnoremap <buffer> <silent> <c-w>    :call <sid>delword()<cr>
   nnoremap <buffer> <silent> <c-u>    :call <sid>delline()<cr>
-  " ...
+
+  " correct arrow keys
+  if has("termresponse") && v:termresponse =~? "\<esc>" ||
+    \ &term =~? '\vxterm|<k?vt|gnome|screen|linux|ansi|tmux'
+    for k in ["\A <up>", "\B <down>", "\C <right>", "\D <left>"]
+      execute "nnoremap <buffer> <silent> <esc>[" . k
+    endfor
+  endif
 
   " accept input (ascii range 32 through 126)
   let mapcmd = 'nnoremap <buffer> <silent> <char-%d> :call <sid>%s("%s")<cr>'
