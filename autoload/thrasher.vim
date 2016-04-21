@@ -45,13 +45,26 @@ let s:regglobals = {}
 let s:state = {
   \   "player": "itunes",
   \   "input": ["", "", ""],
-  \   "mode": "library"
+  \   "mode": "library",
+  \   "list": []
   \ }
 
 " Commands
 
 function! s:dispatch(player, fname, ...)
   return call("thrasher#" . a:player . "#" . a:fname, a:000)
+endfunction
+
+function! thrasher#search(...)
+  let query = {}
+
+  if a:0 > 0
+    let query.artist = get(a:000, 0, "")
+    let query.album  = get(a:000, 1, "")
+    let query.track  = get(a:000, 2, "")
+  endif
+
+  return s:dispatch(s:state.player, "search", query)
 endfunction
 
 function! thrasher#play(...)
@@ -165,7 +178,7 @@ function! s:open()
   nnoremap <buffer> <silent> <c-f>    :call thrasher#next()<cr>
   nnoremap <buffer> <silent> <c-b>    :call thrasher#prev()<cr>
 
-  " nnoremap <buffer> <silent> <cr>     :call <sid>accept()<cr>
+  nnoremap <buffer> <silent> <cr>     :call <sid>enter()<cr>
 
   nnoremap <buffer> <silent> <c-j>    :call <sid>movedown()<cr>
   nnoremap <buffer> <silent> <down>   :call <sid>movedown()<cr>
@@ -225,18 +238,18 @@ endfunction
 function! s:render(state)
   setlocal modifiable
 
-  let tracks = ["Whiplash", "Hit The Lights", "No Remorse"]
+  let tracks = a:state.list
   let length = len(tracks)
 
   " render track list
   silent! execute "%d _ | res" length
 
   if empty(tracks)
-    "
+    call setline(1, "NO RESULTS")
   else
     let i = 1
     for t in tracks
-      call setline(i, t)
+      call setline(i, t.name)
       let i += 1
     endfor
   endif
@@ -289,9 +302,11 @@ function! s:keypress(char)
 endfunction
 
 function! s:movedown()
+  execute "keepj norm! j"
 endfunction
 
 function! s:moveup()
+  execute "keepj norm! k"
 endfunction
 
 function! s:moveleft()
@@ -362,4 +377,11 @@ endfunction
 function! s:delline()
   let s:state.input = ["", "", ""]
   call s:renderprompt(s:state)
+endfunction
+
+function! s:enter()
+  let querystr = join(s:state.input, "")
+  let results = thrasher#search(querystr)
+  let s:state.list = results
+  call s:render(s:state)
 endfunction

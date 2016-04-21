@@ -13,16 +13,19 @@ function! s:jxa(code)
   return substitute(stdout, "\n$", "", "")
 endfunction
 
-function! s:search(q)
-  let output = s:jxa("function run(argv) { var app = Application('iTunes'); var lib = app.playlists.byName('Library'); var res = lib.search({for: 'Metallica', in: 'artists'}); return res.map(function (t) { return t.name(); }); }")
-  return output
-endfunction
-
 " Thrasher commands (iTunes OS X)
+
+function! thrasher#itunes#search(query)
+  if !empty(a:query)
+    return eval(s:jxa("function run(argv) { var app = Application('iTunes'); var lib = app.playlists.byName('Library'); var tracks = lib.search({for: '" . a:query.artist . "'}); return JSON.stringify(tracks.map(function (t) { return {id: t.id(), name: t.name(), album: t.album(), artist: t.artist()}; })); }"))
+  endif
+  " return s:jxa("function run(argv) { var app = Application('iTunes'); return app.play(); }")
+  return []
+endfunction
 
 function! thrasher#itunes#play(query)
   if !empty(a:query)
-    return s:jxa("function run(argv) { var app = Application('iTunes'); var lib = app.playlists.byName('Library'); var tracks = lib.tracks.whose({artist: 'Metallica'}); return app.play(tracks[0]); }")
+    return s:jxa("function run(argv) { var app = Application('iTunes'); var lib = app.playlists.byName('Library'); var tracks = lib.search({for: 'Metallica', only: 'artists'}); return app.play(tracks[0]); }")
   endif
   return s:jxa("function run(argv) { var app = Application('iTunes'); return app.play(); }")
 endfunction
