@@ -122,12 +122,8 @@ function! s:open()
 
   " nnoremap <buffer> <silent> <cr> :call thrasher#play({ ... })<cr>
 
-  nnoremap <buffer> <silent> . :call thrasher#toggle()<cr>
-
-  nnoremap <buffer> <silent> > :call thrasher#next()<cr>
+  nnoremap <buffer> <silent> <c-g> :call thrasher#toggle()<cr>
   nnoremap <buffer> <silent> <c-l> :call thrasher#next()<cr>
-
-  nnoremap <buffer> <silent> < :call thrasher#prev()<cr>
   nnoremap <buffer> <silent> <c-h> :call thrasher#prev()<cr>
 
   nnoremap <buffer> <silent> <c-j> :call <SID>movedown()<cr>
@@ -138,9 +134,8 @@ function! s:open()
   nnoremap <buffer> <silent> <bs> :call <SID>backspace()<cr>
 
   nnoremap <buffer> <silent> <c-w> :call <SID>delword()<cr>
-
-  " nnoremap <buffer> <silent> <c-a> :call <SID>()<cr>
-  " nnoremap <buffer> <silent> <c-e> :call <SID>()<cr>
+  " nnoremap <buffer> <silent> <c-a> :call <SID>movestart()<cr>
+  " nnoremap <buffer> <silent> <c-e> :call <SID>moveend()<cr>
   " ...
 
   " accept input (ascii range 32 through 126)
