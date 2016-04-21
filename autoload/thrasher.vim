@@ -20,7 +20,7 @@ let s:state = {
   \   "input": ""
   \ }
 
-" Actions
+" Commands
 
 function! thrasher#play(...)
   let query = {}
@@ -135,6 +135,14 @@ function! s:open()
   nnoremap <buffer> <silent> <c-k> :call <SID>moveup()<cr>
   nnoremap <buffer> <silent> <up> :call <SID>moveup()<cr>
 
+  nnoremap <buffer> <silent> <bs> :call <SID>backspace()<cr>
+
+  nnoremap <buffer> <silent> <c-w> :call <SID>delword()<cr>
+
+  " nnoremap <buffer> <silent> <c-a> :call <SID>()<cr>
+  " nnoremap <buffer> <silent> <c-e> :call <SID>()<cr>
+  " ...
+
   " accept input (ascii range 32 through 126)
   let mapcmd = 'nnoremap <buffer> <silent> <char-%d> :call <SID>%s("%s")<cr>'
   let keyfn = 'keypress'
@@ -211,5 +219,12 @@ endfunction
 function! s:moveright()
 endfunction
 
-function! s:delchar()
+function! s:backspace()
+  let s:state.input = substitute(s:state.input, ".$", "", "")
+  call s:renderprompt(s:state)
+endfunction
+
+function! s:delword()
+  let s:state.input = substitute(s:state.input, '\w\W*\+$', "", "")
+  call s:renderprompt(s:state)
 endfunction
