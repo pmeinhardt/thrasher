@@ -10,6 +10,26 @@ let g:autoloaded_thrasher = 1
 
 let s:bufname = "thrasher"
 
+let s:bufglobals = {
+  \   "guicursor": "a:blinkon0",
+  \   "hlsearch": 0,
+  \   "ignorecase": 1,
+  \   "imdisable": 1,
+  \   "insertmode": 0,
+  \   "langmap": "",
+  \   "magic": 1,
+  \   "maxfuncdepth": 200,
+  \   "mousefocus": 0,
+  \   "report": 9999,
+  \   "showcmd": 0,
+  \   "sidescroll": 0,
+  \   "sidescrolloff": 0,
+  \   "splitbelow": 1,
+  \   "timeout": 1,
+  \   "timeoutlen": 0,
+  \   "ttimeout": 0
+  \ }
+
 let s:hl = {
   \   "base":    "Comment",
   \   "cursor":  "Constant",
@@ -19,6 +39,8 @@ let s:hl = {
 " Variables
 
 let s:active = 0
+
+let s:regglobals = {}
 
 let s:state = {
   \   "player": "itunes",
@@ -104,9 +126,18 @@ function! s:open()
   " remove all abbreviations
   abclear <buffer>
 
+  " backup and override globals
+  for [k, v] in items(s:bufglobals)
+    if exists("+" . k)
+      silent! execute "let s:regglobals['" . k . "'] = &" . k .
+        \ " | let &" . k " = " . string(v)
+    endif
+  endfor
+
   " setup buffer config
   setlocal bufhidden=unload
   setlocal buftype=nofile
+  setlocal colorcolumn=0
   setlocal foldcolumn=0
   setlocal foldlevel=99
   setlocal foldmethod=manual
@@ -136,24 +167,24 @@ function! s:open()
   nnoremap <buffer> <silent> <c-f>    :call thrasher#next()<cr>
   nnoremap <buffer> <silent> <c-b>    :call thrasher#prev()<cr>
 
-  nnoremap <buffer> <silent> <c-j>    :call <SID>movedown()<cr>
-  nnoremap <buffer> <silent> <down>   :call <SID>movedown()<cr>
-  nnoremap <buffer> <silent> <c-k>    :call <SID>moveup()<cr>
-  nnoremap <buffer> <silent> <up>     :call <SID>moveup()<cr>
-  nnoremap <buffer> <silent> <c-h>    :call <SID>moveleft()<cr>
-  nnoremap <buffer> <silent> <left>   :call <SID>moveleft()<cr>
-  nnoremap <buffer> <silent> <c-l>    :call <SID>moveright()<cr>
-  nnoremap <buffer> <silent> <right>  :call <SID>moveright()<cr>
-  nnoremap <buffer> <silent> <c-a>    :call <SID>movestart()<cr>
-  nnoremap <buffer> <silent> <c-e>    :call <SID>moveend()<cr>
-  nnoremap <buffer> <silent> <bs>     :call <SID>backspace()<cr>
-  nnoremap <buffer> <silent> <del>    :call <SID>delchar()<cr>
-  nnoremap <buffer> <silent> <c-w>    :call <SID>delword()<cr>
-  nnoremap <buffer> <silent> <c-u>    :call <SID>delline()<cr>
+  nnoremap <buffer> <silent> <c-j>    :call <sid>movedown()<cr>
+  nnoremap <buffer> <silent> <down>   :call <sid>movedown()<cr>
+  nnoremap <buffer> <silent> <c-k>    :call <sid>moveup()<cr>
+  nnoremap <buffer> <silent> <up>     :call <sid>moveup()<cr>
+  nnoremap <buffer> <silent> <c-h>    :call <sid>moveleft()<cr>
+  nnoremap <buffer> <silent> <left>   :call <sid>moveleft()<cr>
+  nnoremap <buffer> <silent> <c-l>    :call <sid>moveright()<cr>
+  nnoremap <buffer> <silent> <right>  :call <sid>moveright()<cr>
+  nnoremap <buffer> <silent> <c-a>    :call <sid>movestart()<cr>
+  nnoremap <buffer> <silent> <c-e>    :call <sid>moveend()<cr>
+  nnoremap <buffer> <silent> <bs>     :call <sid>backspace()<cr>
+  nnoremap <buffer> <silent> <del>    :call <sid>delchar()<cr>
+  nnoremap <buffer> <silent> <c-w>    :call <sid>delword()<cr>
+  nnoremap <buffer> <silent> <c-u>    :call <sid>delline()<cr>
   " ...
 
   " accept input (ascii range 32 through 126)
-  let mapcmd = 'nnoremap <buffer> <silent> <char-%d> :call <SID>%s("%s")<cr>'
+  let mapcmd = 'nnoremap <buffer> <silent> <char-%d> :call <sid>%s("%s")<cr>'
   let keyfn = 'keypress'
 
   for code in range(32, 33) + range(35, 91) + range(93, 123) + range(125, 126)
@@ -167,7 +198,18 @@ endfunction
 
 function! s:close()
   bunload! "" . s:bufname
+
+  " restore globals
+  for k in keys(s:bufglobals)
+    if exists("+" . k)
+      silent! execute "let &" . k . " = s:regglobals['" . k . "']"
+    endif
+  endfor
+
+  " drop buffer information
   unlet! s:bufnr s:winw
+
+  " clear echo line
   echo
 endfunction
 
@@ -215,21 +257,22 @@ endfunction
 
 function! s:renderprompt(state)
   let input = copy(a:state.input)
-  let hlcursor = s:hl.cursor
+
+  let [hldefault, hlcursor, hlbase] = [s:hl.default, s:hl.cursor, s:hl.base]
 
   if input[1] ==# " "
-    let hlcursor = s:hl.base
+    let hlcursor = hlbase
     let input[1] = "_"
   endif
 
-  execute "echoh " . s:hl.default . " | echon '>>> '" .
-    \ " | echoh " . s:hl.default . " | echon '" . input[0] . "'" .
-    \ " | echoh " . hlcursor     . " | echon '" . input[1] . "'" .
-    \ " | echoh " . s:hl.default . " | echon '" . input[2] . "'" .
-    \ " | echoh None"
+  execute "echoh " . hldefault . " | echon '>>> '" .
+    \ " | echoh " . hldefault . " | echon '" . input[0] . "'" .
+    \ " | echoh " . hlcursor  . " | echon '" . input[1] . "'" .
+    \ " | echoh " . hldefault . " | echon '" . input[2] . "'" .
+    \ " | echoh none"
 
   if empty(input[1])
-    execute "echoh " . s:hl.base . " | echon '_' | echoh None"
+    execute "echoh " . hlbase . " | echon '_' | echoh none"
   endif
 endfunction
 

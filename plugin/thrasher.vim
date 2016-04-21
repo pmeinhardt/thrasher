@@ -40,5 +40,7 @@ command! -nargs=0 ThrasherStatus   call thrasher#status()
 " Add -complete=customlist,... or -complete=custom,...
 " see :help :command-completion-custom
 
+" TODO: Full window mode (no esc., full height list)
+
 " test-only
 nnoremap <leader>t :Thrasher<cr>
