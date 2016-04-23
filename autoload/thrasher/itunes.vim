@@ -59,5 +59,5 @@ function! thrasher#itunes#prev()
 endfunction
 
 function! thrasher#itunes#status()
-  return s:jxa("function run(argv) { var app = Application('iTunes'); var track = app.currentTrack(); return app.playerState() + ': ' + [track.name(), track.album(), track.artist()].join(' // '); }")
+  return eval(s:jxa("function run(argv) { var app = Application('iTunes'); var track = app.currentTrack(); return JSON.stringify({state: app.playerState(), track: {name: track.name(), album: track.album(), artist: track.artist()}}); }"))
 endfunction

@@ -105,8 +105,9 @@ endfunction
 
 function! thrasher#status()
   let status = s:dispatch(s:state.player, "status")
-  " format and display status information
-  echo status
+  let track = status.track
+  let info = join([track.name, track.album, track.artist], ", ")
+  echom status.state . ": " . info
 endfunction
 
 " Interface
