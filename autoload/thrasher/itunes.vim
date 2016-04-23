@@ -9,15 +9,19 @@ let g:loaded_thrasher_itunes = 1
 " JavaScript for Automation helpers (Mac OS X)
 
 function! s:jxa(code)
-  let stdout = system("echo \"" . a:code . "\" | osascript -l JavaScript")
-  return substitute(stdout, "\n$", "", "")
+  let output = system("echo \"" . a:code . "\" | osascript -l JavaScript")
+  return substitute(output, "\n$", "", "")
+endfunction
+
+function! s:jxaescape(str)
+  return escape(a:str, '\"''')
 endfunction
 
 " Thrasher commands (iTunes OS X)
 
 function! thrasher#itunes#search(query)
   if !empty(a:query)
-    return eval(s:jxa("function run(argv) { var app = Application('iTunes'); var lib = app.playlists.byName('Library'); var tracks = lib.search({for: '" . a:query.artist . "'}); return JSON.stringify(tracks.map(function (t) { return {id: t.id(), name: t.name(), album: t.album(), artist: t.artist()}; })); }"))
+    return eval(s:jxa("function run(argv) { var app = Application('iTunes'); var lib = app.playlists.byName('Library'); var tracks = lib.search({for: '" . s:jxaescape(a:query.artist) . "'}); return JSON.stringify(tracks.map(function (t) { return {id: t.id(), name: t.name(), album: t.album(), artist: t.artist()}; })); }"))
   endif
   " return s:jxa("function run(argv) { var app = Application('iTunes'); return app.play(); }")
   return []
@@ -25,7 +29,11 @@ endfunction
 
 function! thrasher#itunes#play(query)
   if !empty(a:query)
-    return s:jxa("function run(argv) { var app = Application('iTunes'); var lib = app.playlists.byName('Library'); var tracks = lib.search({for: 'Metallica', only: 'artists'}); return app.play(tracks[0]); }")
+    if has_key(a:query, "obj")
+      return s:jxa("function run(argv) { var app = Application('iTunes'); var lib = app.playlists.byName('Library'); return app.play(lib.tracks.byId(" . a:query["obj"]["id"] . ")); }")
+    else
+      return s:jxa("function run(argv) { var app = Application('iTunes'); var lib = app.playlists.byName('Library'); var tracks = lib.search({for: 'Metallica', only: 'artists'}); return app.play(tracks[0]); }")
+    endif
   endif
   return s:jxa("function run(argv) { var app = Application('iTunes'); return app.play(); }")
 endfunction

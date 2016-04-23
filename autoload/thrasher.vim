@@ -67,17 +67,21 @@ function! thrasher#search(...)
   return s:dispatch(s:state.player, "search", query)
 endfunction
 
-function! thrasher#play(...)
-  let query = {}
-
-  if a:0 > 0
-    let query.artist = get(a:000, 0, "")
-    let query.album = get(a:000, 1, "")
-    let query.track = get(a:000, 2, "")
-  endif
-
-  return s:dispatch(s:state.player, "play", query)
+function! thrasher#play(query)
+  return s:dispatch(s:state.player, "play", a:query)
 endfunction
+
+" function! thrasher#play(...)
+"   let query = {}
+
+"   if a:0 > 0
+"     let query.artist = get(a:000, 0, "")
+"     let query.album = get(a:000, 1, "")
+"     let query.track = get(a:000, 2, "")
+"   endif
+
+"   return s:dispatch(s:state.player, "play", query)
+" endfunction
 
 function! thrasher#pause()
   return s:dispatch(s:state.player, "pause")
@@ -112,7 +116,10 @@ function! thrasher#run()
   let s:active = 1
 
   noautocmd call s:open()
-  call s:render(s:state)
+
+  call s:renderbuffer(s:state)
+  call s:renderstatus(s:state)
+  call s:renderprompt(s:state)
 
   return 1
 endfunction
@@ -180,6 +187,9 @@ function! s:open()
 
   nnoremap <buffer> <silent> <cr>     :call <sid>enter()<cr>
 
+  nnoremap <buffer> <silent> <c-o>    :call <sid>accept()<cr>
+  nnoremap <buffer> <silent> <c-]>    :call <sid>accept()<cr>
+
   nnoremap <buffer> <silent> <c-j>    :call <sid>movedown()<cr>
   nnoremap <buffer> <silent> <down>   :call <sid>movedown()<cr>
   nnoremap <buffer> <silent> <c-k>    :call <sid>moveup()<cr>
@@ -235,7 +245,7 @@ endfunction
 
 " Rendering
 
-function! s:render(state)
+function! s:renderbuffer(state)
   setlocal modifiable
 
   let tracks = a:state.list
@@ -253,12 +263,6 @@ function! s:render(state)
       let i += 1
     endfor
   endif
-
-  " adapt status line (show library vs. playlist etc.)
-  call s:renderstatus(a:state)
-
-  " render prompt
-  call s:renderprompt(a:state)
 
   setlocal nomodifiable
 endfunction
@@ -383,5 +387,11 @@ function! s:enter()
   let querystr = join(s:state.input, "")
   let results = thrasher#search(querystr)
   let s:state.list = results
-  call s:render(s:state)
+  call s:renderbuffer(s:state)
+endfunction
+
+function! s:accept()
+  if empty(s:state.list) | return | endif
+  let index = line(".") - 1
+  call thrasher#play({"obj": s:state.list[index]})
 endfunction
