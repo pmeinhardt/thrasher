@@ -185,8 +185,8 @@ function! s:open()
   nnoremap <buffer> <silent> <c-f>    :call thrasher#next()<cr>
   nnoremap <buffer> <silent> <c-b>    :call thrasher#prev()<cr>
 
+  nnoremap <buffer> <silent> <cr>     :call <sid>accept()<cr>
   nnoremap <buffer> <silent> <c-o>    :call <sid>accept()<cr>
-  nnoremap <buffer> <silent> <c-]>    :call <sid>accept()<cr>
 
   nnoremap <buffer> <silent> <c-j>    :call <sid>movedown()<cr>
   nnoremap <buffer> <silent> <down>   :call <sid>movedown()<cr>
@@ -270,7 +270,6 @@ function! s:renderbuffer(state)
   let tracks = a:state.list
   let length = len(tracks)
 
-  " render track list
   silent! execute "%d _ | res" length
 
   if empty(tracks)
@@ -308,7 +307,7 @@ function! s:renderprompt(state)
     let input[1] = "_"
   endif
 
-  execute "echoh " . hldefault . " | echon '>>> '" .
+  execute "echoh " . hlbase . " | echon '>>> '" .
     \ " | echoh " . hldefault . " | echon '" . input[0] . "'" .
     \ " | echoh " . hlcursor  . " | echon '" . input[1] . "'" .
     \ " | echoh " . hldefault . " | echon '" . input[2] . "'" .
@@ -332,12 +331,12 @@ function! s:backspace()
 endfunction
 
 function! s:delchar()
-  let parts = s:state.input
+  let prev = s:state.input
 
   let s:state.input = [
-    \   parts[0],
-    \   matchstr(parts[2], "^."),
-    \   substitute(parts[2], "^.", "", "")
+    \   prev[0],
+    \   matchstr(prev[2], "^."),
+    \   substitute(prev[2], "^.", "", "")
     \ ]
 
   call s:update(s:state)
@@ -365,34 +364,35 @@ function! s:moveup()
 endfunction
 
 function! s:moveleft()
-  let parts = s:state.input
+  if empty(s:state.input[0]) | return | endif
 
-  if !empty(parts[0])
-    let s:state.input = [
-      \   substitute(parts[0], ".$", "", ""),
-      \   matchstr(parts[0], ".$"),
-      \   parts[1] . parts[2]
-      \ ]
-  endif
+  let prev = s:state.input
+  let s:state.input = [
+    \   substitute(prev[0], ".$", "", ""),
+    \   matchstr(prev[0], ".$"),
+    \   prev[1] . prev[2]
+    \ ]
 
   call s:renderprompt(s:state)
 endfunction
 
 function! s:moveright()
-  let parts = s:state.input
+  if empty(s:state.input[1]) | return | endif
 
+  let prev = s:state.input
   let s:state.input = [
-    \   parts[0] . parts[1],
-    \   matchstr(parts[2], "^."),
-    \   substitute(parts[2], "^.", "", "")
+    \   prev[0] . prev[1],
+    \   matchstr(prev[2], "^."),
+    \   substitute(prev[2], "^.", "", "")
     \ ]
 
   call s:renderprompt(s:state)
 endfunction
 
 function! s:movestart()
-  let input = join(s:state.input, "")
+  if empty(s:state.input[0]) | return | endif
 
+  let input = join(s:state.input, "")
   let s:state.input = [
     \   "",
     \   matchstr(input, "^.", ""),
@@ -403,6 +403,7 @@ function! s:movestart()
 endfunction
 
 function! s:moveend()
+  if empty(s:state.input[1]) | return | endif
   let s:state.input = [join(s:state.input, ""), "", ""]
   call s:renderprompt(s:state)
 endfunction
