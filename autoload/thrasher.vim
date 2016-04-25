@@ -116,11 +116,10 @@ function! thrasher#run()
   if s:active | return 0 | endif
   let s:active = 1
 
-  noautocmd call s:open()
+  call s:dispatch(s:state.player, "init")
 
-  call s:renderbuffer(s:state)
-  call s:renderstatus(s:state)
-  call s:renderprompt(s:state)
+  noautocmd call s:open()
+  call s:render(s:state)
 
   return 1
 endfunction
@@ -186,8 +185,6 @@ function! s:open()
   nnoremap <buffer> <silent> <c-f>    :call thrasher#next()<cr>
   nnoremap <buffer> <silent> <c-b>    :call thrasher#prev()<cr>
 
-  nnoremap <buffer> <silent> <cr>     :call <sid>enter()<cr>
-
   nnoremap <buffer> <silent> <c-o>    :call <sid>accept()<cr>
   nnoremap <buffer> <silent> <c-]>    :call <sid>accept()<cr>
 
@@ -244,7 +241,28 @@ function! s:close()
   echo
 endfunction
 
+" Control
+
+function! s:update(state)
+  let querystr = join(a:state.input, "")
+  let a:state.list = thrasher#search(querystr)
+endfunction
+
+function! s:accept()
+  if empty(s:state.list) | return | endif
+  let index = line(".") - 1
+  call thrasher#play({"obj": s:state.list[index]})
+endfunction
+
 " Rendering
+
+function! s:render(state)
+  call s:renderbuffer(a:state)
+  call s:renderstatus(a:state)
+  call s:renderprompt(a:state)
+endfunction
+
+" Buffer
 
 function! s:renderbuffer(state)
   setlocal modifiable
@@ -303,11 +321,39 @@ endfunction
 
 function! s:keypress(char)
   let s:state.input[0] .= a:char
-  call s:renderprompt(s:state)
-  let querystr = join(s:state.input, "")
-  let results = thrasher#search(querystr)
-  let s:state.list = results
-  call s:renderbuffer(s:state)
+  call s:update(s:state)
+  call s:render(s:state)
+endfunction
+
+function! s:backspace()
+  let s:state.input[0] = substitute(s:state.input[0], ".$", "", "")
+  call s:update(s:state)
+  call s:render(s:state)
+endfunction
+
+function! s:delchar()
+  let parts = s:state.input
+
+  let s:state.input = [
+    \   parts[0],
+    \   matchstr(parts[2], "^."),
+    \   substitute(parts[2], "^.", "", "")
+    \ ]
+
+  call s:update(s:state)
+  call s:render(s:state)
+endfunction
+
+function! s:delword()
+  let s:state.input[0] = substitute(s:state.input[0], '\w\+\W*$', "", "")
+  call s:update(s:state)
+  call s:render(s:state)
+endfunction
+
+function! s:delline()
+  let s:state.input = ["", "", ""]
+  call s:update(s:state)
+  call s:render(s:state)
 endfunction
 
 function! s:movedown()
@@ -359,44 +405,4 @@ endfunction
 function! s:moveend()
   let s:state.input = [join(s:state.input, ""), "", ""]
   call s:renderprompt(s:state)
-endfunction
-
-function! s:backspace()
-  let s:state.input[0] = substitute(s:state.input[0], ".$", "", "")
-  call s:renderprompt(s:state)
-endfunction
-
-function! s:delchar()
-  let parts = s:state.input
-
-  let s:state.input = [
-    \   parts[0],
-    \   matchstr(parts[2], "^."),
-    \   substitute(parts[2], "^.", "", "")
-    \ ]
-
-  call s:renderprompt(s:state)
-endfunction
-
-function! s:delword()
-  let s:state.input[0] = substitute(s:state.input[0], '\w\+\W*$', "", "")
-  call s:renderprompt(s:state)
-endfunction
-
-function! s:delline()
-  let s:state.input = ["", "", ""]
-  call s:renderprompt(s:state)
-endfunction
-
-function! s:enter()
-  let querystr = join(s:state.input, "")
-  let results = thrasher#search(querystr)
-  let s:state.list = results
-  call s:renderbuffer(s:state)
-endfunction
-
-function! s:accept()
-  if empty(s:state.list) | return | endif
-  let index = line(".") - 1
-  call thrasher#play({"obj": s:state.list[index]})
 endfunction

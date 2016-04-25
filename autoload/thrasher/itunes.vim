@@ -36,7 +36,6 @@ function! thrasher#itunes#exit()
 endfunction
 
 function! thrasher#itunes#search(query)
-  call thrasher#itunes#init()
   if empty(a:query) | return s:cache | endif
   let ls = copy(s:cache)
   call filter(ls, "s:match(v:val, '" . a:query.artist . "')")
