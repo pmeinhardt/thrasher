@@ -304,6 +304,10 @@ endfunction
 function! s:keypress(char)
   let s:state.input[0] .= a:char
   call s:renderprompt(s:state)
+  let querystr = join(s:state.input, "")
+  let results = thrasher#search(querystr)
+  let s:state.list = results
+  call s:renderbuffer(s:state)
 endfunction
 
 function! s:movedown()

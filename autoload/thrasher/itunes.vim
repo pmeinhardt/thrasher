@@ -19,12 +19,28 @@ endfunction
 
 " Thrasher commands (iTunes OS X)
 
-function! thrasher#itunes#search(query)
-  if !empty(a:query)
-    return eval(s:jxa("function run(argv) { var app = Application('iTunes'); var lib = app.playlists.byName('Library'); var tracks = lib.search({for: '" . s:jxaescape(a:query.artist) . "'}); return JSON.stringify(tracks.map(function (t) { return {id: t.id(), name: t.name(), album: t.album(), artist: t.artist()}; })); }"))
+function! s:match(track, q)
+  return match(a:track.artist, a:q) >= 0
+endfunction
+
+let s:cache = []
+
+function! thrasher#itunes#init()
+  if empty(s:cache)
+    let s:cache = eval(s:jxa("function run(argv) { var app = Application('iTunes'); var lib = app.playlists.byName('Library'); return JSON.stringify(lib.tracks().map(function (t) { return {id: t.id(), name: t.name(), album: t.album(), artist: t.artist()}; })); }"))
   endif
-  " return s:jxa("function run(argv) { var app = Application('iTunes'); return app.play(); }")
-  return []
+endfunction
+
+function! thrasher#itunes#exit()
+  let s:cache = []
+endfunction
+
+function! thrasher#itunes#search(query)
+  call thrasher#itunes#init()
+  if empty(a:query) | return s:cache | endif
+  let ls = copy(s:cache)
+  call filter(ls, "s:match(v:val, '" . a:query.artist . "')")
+  return ls
 endfunction
 
 function! thrasher#itunes#play(query)
