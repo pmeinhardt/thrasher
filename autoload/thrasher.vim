@@ -273,8 +273,10 @@ function! s:renderbuffer(state)
   silent! execute "%d _ | res" length
 
   if empty(tracks)
+    setlocal nocursorline
     call setline(1, "NO RESULTS")
   else
+    setlocal cursorline
     let i = 1
     for t in tracks
       call setline(i, t.name)
