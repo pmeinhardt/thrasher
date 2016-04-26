@@ -40,7 +40,13 @@ command! -nargs=0 ThrasherStatus   call thrasher#status()
 " Add -complete=customlist,... or -complete=custom,...
 " see :help :command-completion-custom
 
-" TODO: Full window mode (no esc., full height list)
+" TODO: Standalone window mode (no esc., full height list)
 
-" test-only
-nnoremap <leader>t :Thrasher<cr>
+" nnoremap <silent> <plug>(thrasher) :<c-u>Thrasher<cr>
+nnoremap <plug>(thrasher) :<c-u>Thrasher<cr>
+
+if !exists("g:thrashermap") | let g:thrashermap = "<leader>m" | endif
+
+if g:thrashermap != "" && !hasmapto("<plug>(thrasher)")
+  execute "map " . g:thrashermap . " <plug>(thrasher)"
+endif

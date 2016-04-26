@@ -19,10 +19,6 @@ endfunction
 
 " Thrasher commands (iTunes OS X)
 
-function! s:match(track, q)
-  return match(a:track.artist, a:q) >= 0
-endfunction
-
 let s:cache = []
 
 function! thrasher#itunes#init()
@@ -35,11 +31,21 @@ function! thrasher#itunes#exit()
   let s:cache = []
 endfunction
 
-function! thrasher#itunes#search(query)
+function! thrasher#itunes#search(query, mode)
   if empty(a:query) | return s:cache | endif
-  let ls = copy(s:cache)
-  call filter(ls, "s:match(v:val, '" . a:query.artist . "')")
-  return ls
+
+  let prop = (a:mode ==# "track") ? "name" : a:mode
+
+  if prop ==# "artist" || prop ==# "album" || prop ==# "name"
+    let filtfn = printf("match(v:val['" . prop . "'], '%s') >= 0", a:query)
+  else
+    let filtfn = printf("match(values(v:val), '%s') >= 0", a:query)
+  endif
+
+  let tracks = copy(s:cache)
+  call filter(tracks, filtfn)
+
+  return tracks
 endfunction
 
 function! thrasher#itunes#play(query)

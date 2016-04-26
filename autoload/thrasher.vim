@@ -36,6 +36,13 @@ let s:hl = {
   \   "default": "Normal"
   \ }
 
+let s:modes = [
+  \   "any",
+  \   "artist",
+  \   "album",
+  \   "track"
+  \ ]
+
 " Variables
 
 let s:active = 0
@@ -45,7 +52,7 @@ let s:regglobals = {}
 let s:state = {
   \   "player": "itunes",
   \   "input": ["", "", ""],
-  \   "mode": "library",
+  \   "mode": s:modes[0],
   \   "list": []
   \ }
 
@@ -55,16 +62,8 @@ function! s:dispatch(player, fname, ...)
   return call("thrasher#" . a:player . "#" . a:fname, a:000)
 endfunction
 
-function! thrasher#search(...)
-  let query = {}
-
-  if a:0 > 0
-    let query.artist = get(a:000, 0, "")
-    let query.album  = get(a:000, 1, "")
-    let query.track  = get(a:000, 2, "")
-  endif
-
-  return s:dispatch(s:state.player, "search", query)
+function! thrasher#search(query, mode)
+  return s:dispatch(s:state.player, "search", a:query, a:mode)
 endfunction
 
 function! thrasher#play(query)
@@ -137,7 +136,7 @@ endfunction
 
 function! s:open()
   " open new window (bottom)
-  silent! execute "keepa botright 1new " . s:bufname
+  silent! execute "keepalt botright 1new " . s:bufname
 
   " store buffer information
   let s:bufnr = bufnr("%")
@@ -178,30 +177,32 @@ function! s:open()
   setlocal filetype=thrasher
 
   " install key mappings
-  nnoremap <buffer> <silent> <esc>    :call thrasher#exit()<cr>
-  nnoremap <buffer> <silent> <c-c>    :call thrasher#exit()<cr>
+  nnoremap <buffer> <silent> <esc>    :<c-u>call thrasher#exit()<cr>
+  nnoremap <buffer> <silent> <c-c>    :<c-u>call thrasher#exit()<cr>
 
-  nnoremap <buffer> <silent> <c-g>    :call thrasher#toggle()<cr>
-  nnoremap <buffer> <silent> <c-f>    :call thrasher#next()<cr>
-  nnoremap <buffer> <silent> <c-b>    :call thrasher#prev()<cr>
+  nnoremap <buffer> <silent> <c-g>    :<c-u>call thrasher#toggle()<cr>
+  nnoremap <buffer> <silent> <c-f>    :<c-u>call thrasher#next()<cr>
+  nnoremap <buffer> <silent> <c-b>    :<c-u>call thrasher#prev()<cr>
 
-  nnoremap <buffer> <silent> <cr>     :call <sid>accept()<cr>
-  nnoremap <buffer> <silent> <c-o>    :call <sid>accept()<cr>
+  nnoremap <buffer> <silent> <cr>     :<c-u>call <sid>accept()<cr>
+  nnoremap <buffer> <silent> <c-o>    :<c-u>call <sid>accept()<cr>
 
-  nnoremap <buffer> <silent> <c-j>    :call <sid>movedown()<cr>
-  nnoremap <buffer> <silent> <down>   :call <sid>movedown()<cr>
-  nnoremap <buffer> <silent> <c-k>    :call <sid>moveup()<cr>
-  nnoremap <buffer> <silent> <up>     :call <sid>moveup()<cr>
-  nnoremap <buffer> <silent> <c-h>    :call <sid>moveleft()<cr>
-  nnoremap <buffer> <silent> <left>   :call <sid>moveleft()<cr>
-  nnoremap <buffer> <silent> <c-l>    :call <sid>moveright()<cr>
-  nnoremap <buffer> <silent> <right>  :call <sid>moveright()<cr>
-  nnoremap <buffer> <silent> <c-a>    :call <sid>movestart()<cr>
-  nnoremap <buffer> <silent> <c-e>    :call <sid>moveend()<cr>
-  nnoremap <buffer> <silent> <bs>     :call <sid>backspace()<cr>
-  nnoremap <buffer> <silent> <del>    :call <sid>delchar()<cr>
-  nnoremap <buffer> <silent> <c-w>    :call <sid>delword()<cr>
-  nnoremap <buffer> <silent> <c-u>    :call <sid>delline()<cr>
+  nnoremap <buffer> <silent> <c-v>    :<c-u>call <sid>modeswitch()<cr>
+
+  nnoremap <buffer> <silent> <c-j>    :<c-u>call <sid>movedown()<cr>
+  nnoremap <buffer> <silent> <down>   :<c-u>call <sid>movedown()<cr>
+  nnoremap <buffer> <silent> <c-k>    :<c-u>call <sid>moveup()<cr>
+  nnoremap <buffer> <silent> <up>     :<c-u>call <sid>moveup()<cr>
+  nnoremap <buffer> <silent> <c-h>    :<c-u>call <sid>moveleft()<cr>
+  nnoremap <buffer> <silent> <left>   :<c-u>call <sid>moveleft()<cr>
+  nnoremap <buffer> <silent> <c-l>    :<c-u>call <sid>moveright()<cr>
+  nnoremap <buffer> <silent> <right>  :<c-u>call <sid>moveright()<cr>
+  nnoremap <buffer> <silent> <c-a>    :<c-u>call <sid>movestart()<cr>
+  nnoremap <buffer> <silent> <c-e>    :<c-u>call <sid>moveend()<cr>
+  nnoremap <buffer> <silent> <bs>     :<c-u>call <sid>backspace()<cr>
+  nnoremap <buffer> <silent> <del>    :<c-u>call <sid>delchar()<cr>
+  nnoremap <buffer> <silent> <c-w>    :<c-u>call <sid>delword()<cr>
+  nnoremap <buffer> <silent> <c-u>    :<c-u>call <sid>delline()<cr>
 
   " correct arrow keys
   if has("termresponse") && v:termresponse =~? "\<esc>" ||
@@ -212,7 +213,9 @@ function! s:open()
   endif
 
   " accept input (ascii range 32 through 126)
-  let mapcmd = 'nnoremap <buffer> <silent> <char-%d> :call <sid>%s("%s")<cr>'
+  let mapcmd = 'nnoremap <buffer> <silent> <char-%d> ' .
+    \ ':<c-u>call <sid>%s("%s")<cr>'
+
   let keyfn = 'keypress'
 
   for code in range(32, 33) + range(35, 91) + range(93, 123) + range(125, 126)
@@ -243,9 +246,20 @@ endfunction
 
 " Control
 
-function! s:update(state)
+function! s:research(state)
   let querystr = join(a:state.input, "")
-  let a:state.list = thrasher#search(querystr)
+  let mode = a:state.mode
+  let a:state.list = thrasher#search(querystr, mode)
+endfunction
+
+function! s:modeswitch()
+  let idx = (index(s:modes, s:state.mode) + 1) % len(s:modes)
+  let s:state.mode = s:modes[idx]
+
+  call s:research(s:state)
+
+  call s:renderbuffer(s:state)
+  call s:renderstatus(s:state)
 endfunction
 
 function! s:accept()
@@ -290,7 +304,9 @@ endfunction
 " Status-line
 
 function! s:renderstatus(state)
-  let &l:statusline = "thrasher"
+  let base = "thrasher [ " . join(s:modes, " ") . " ] " . len(a:state.list)
+  let line = substitute(base, a:state.mode, "<" . a:state.mode . ">", "")
+  let &l:statusline = line
 endfunction
 
 " Prompt
@@ -313,22 +329,22 @@ function! s:renderprompt(state)
     \ " | echoh " . hldefault . " | echon '" . input[0] . "'" .
     \ " | echoh " . hlcursor  . " | echon '" . input[1] . "'" .
     \ " | echoh " . hldefault . " | echon '" . input[2] . "'" .
-    \ " | echoh none"
+    \ " | echoh None"
 
   if empty(input[1])
-    execute "echoh " . hlbase . " | echon '_' | echoh none"
+    execute "echoh " . hlbase . " | echon '_' | echoh None"
   endif
 endfunction
 
 function! s:keypress(char)
   let s:state.input[0] .= a:char
-  call s:update(s:state)
+  call s:research(s:state)
   call s:render(s:state)
 endfunction
 
 function! s:backspace()
   let s:state.input[0] = substitute(s:state.input[0], ".$", "", "")
-  call s:update(s:state)
+  call s:research(s:state)
   call s:render(s:state)
 endfunction
 
@@ -341,28 +357,28 @@ function! s:delchar()
     \   substitute(prev[2], "^.", "", "")
     \ ]
 
-  call s:update(s:state)
+  call s:research(s:state)
   call s:render(s:state)
 endfunction
 
 function! s:delword()
   let s:state.input[0] = substitute(s:state.input[0], '\w\+\W*$', "", "")
-  call s:update(s:state)
+  call s:research(s:state)
   call s:render(s:state)
 endfunction
 
 function! s:delline()
   let s:state.input = ["", "", ""]
-  call s:update(s:state)
+  call s:research(s:state)
   call s:render(s:state)
 endfunction
 
 function! s:movedown()
-  execute "keepj norm! j"
+  execute "keepjumps norm! j"
 endfunction
 
 function! s:moveup()
-  execute "keepj norm! k"
+  execute "keepjumps norm! k"
 endfunction
 
 function! s:moveleft()
