@@ -65,6 +65,8 @@ To close, hit `<esc>` or `<c-c>`.
 
 Inputting
 
+- `<c-h>` moves the cursor left
+- `<c-l>` moves the cursor right
 - `<c-e>` jumps to the very end of your input
 - `<c-a>` places the prompt cursor at the start
 - `<c-w>` deletes the word in front of the cursor
