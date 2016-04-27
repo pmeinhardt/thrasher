@@ -59,6 +59,8 @@ You can scroll through the list of found tracks, using `<c-j>` to go down and
 
 Hit `<enter>` to play the selected song!
 
+To close, hit `<esc>` or `<c-c>`.
+
 **Advanced**
 
 Inputting
