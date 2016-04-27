@@ -126,7 +126,6 @@ endfunction
 function! thrasher#exit()
   if s:active && bufnr("%") ==# s:bufnr && bufname("%") ==# s:bufname
     noautocmd call s:close()
-    call s:resetprompt()
     let s:active = 0
     return 1
   endif
@@ -310,10 +309,6 @@ function! s:renderstatus(state)
 endfunction
 
 " Prompt
-
-function! s:resetprompt()
-  let s:state.input = ["", "", ""]
-endfunction
 
 function! s:renderprompt(state)
   let input = copy(a:state.input)
