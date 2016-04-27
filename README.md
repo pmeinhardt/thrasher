@@ -105,3 +105,9 @@ calling `vundle#end()` or `plug#end()` – i.e. before loading the plugin.
 There are many ways in which you could contribute: Through code, by creating
 pull-requests, but mainly by just providing me with feedback and
 your thoughts on what to improve.
+
+## Thanks
+
+This project boldly steals some user interface ideas from the very useful
+[ctrlp](https://github.com/ctrlpvim/ctrlp.vim),
+a vim plugin which has been making my vim a lot more fun.
