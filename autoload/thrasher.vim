@@ -46,6 +46,7 @@ let s:modes = [
 " Variables
 
 let s:active = 0
+let s:cursorpos = [0, 1, 1, 0]
 
 let s:regglobals = {}
 
@@ -120,11 +121,14 @@ function! thrasher#run()
   noautocmd call s:open()
   call s:render(s:state)
 
+  call setpos(".", s:cursorpos)
+
   return 1
 endfunction
 
 function! thrasher#exit()
   if s:active && bufnr("%") ==# s:bufnr && bufname("%") ==# s:bufname
+    let s:cursorpos = getpos(".")
     noautocmd call s:close()
     let s:active = 0
     return 1
