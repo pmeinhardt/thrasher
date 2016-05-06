@@ -478,3 +478,12 @@ function! s:moveend()
   let s:state.input = [join(s:state.input, ""), "", ""]
   call s:renderprompt(s:state)
 endfunction
+
+" Auto-commands
+
+if has("autocmd")
+  augroup ThrasherAutoCmdGroup
+    autocmd!
+    autocmd BufLeave Thrasher noa call thrasher#exit()
+  augroup END
+endif
