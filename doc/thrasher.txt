@@ -53,6 +53,53 @@ COMMANDS                                        *thrasher-commands*
 
 MAPPINGS                                        *thrasher-mappings*
 
+<leader>m     Default |Normal| mode mapping to launch thrasher (in prompt mode).
+
+Global mappings (in prompt and window)~
+
+<c-g>         toggles between play and pause
+<c-f>         skips forward to the next track
+<c-b>         lets you return to the previous track
+
+<c-v>         switch search modes (any/artist/album/track)
+
+<cr>, <c-o>   plays the currently selected track
+
+<esc>, <c-c>  closes thrasher
+
+<s-tab>       toggles between prompt and window focus
+
+In the prompt~
+
+<c-h>         moves the cursor left
+<c-l>         moves the cursor right
+<c-e>         jumps to the very end of your input
+<c-a>         places the prompt cursor at the start
+<bs>          deletes the preceding character
+<del>         deletes the current character
+<c-w>         deletes the word in front of the cursor
+<c-u>         deletes your entire search input
+
+<c-j>         moves the track selection down
+<c-k>         moves the track selection up
+
+In the window~
+
+You can use the regular vim key mappings to navigate the results list.
+Use the global thrasher key mappings listed above to control playback,
+switch search modes and <cr> to play the track under the cursor.
+
+Use <s-tab> to switch back to the prompt.
+
+CUSTOMIZATION                                   *thrasher-customization*
+
+Mappings~
+
+Change the default mapping to invoke thrasher in |Normal| mode: >
+  let g:thrashermap = '<leader>m'
+<
+Highlighting~
+
 ABOUT                                           *thrasher-about*
 
 Grab the latest version or report a bug on GitHub:

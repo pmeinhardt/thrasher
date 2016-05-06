@@ -63,20 +63,48 @@ To close, hit `<esc>` or `<c-c>`.
 
 **Advanced**
 
-Inputting
+Inputting (prompt focus)
 
+- type to search (letters, numbers, spaces…)
 - `<c-h>` moves the cursor left
 - `<c-l>` moves the cursor right
 - `<c-e>` jumps to the very end of your input
 - `<c-a>` places the prompt cursor at the start
+- `<bs>`  deletes the preceding character
+- `<del>` deletes the current character
 - `<c-w>` deletes the word in front of the cursor
 - `<c-u>` deletes your entire search input
+
+Navigation
+
+- `<c-j>` moves the track selection down
+- `<c-k>` moves the track selection up
+
+Search modes
+
+- `<c-v>` switch between search modes (`any`/`artist`/`album`/`track`)
 
 Player control
 
 - `<c-g>` toggles between play and pause
 - `<c-f>` skips forward to the next track
 - `<c-b>` lets you return to the previous track
+
+Focus
+
+- `<s-tab>` switches between prompt and window focus
+
+The prompt controls for entering queries are explained above.
+Thrasher will launch with prompt focus by default.
+
+With window focus you can navigate the result list more easily,
+using standard vim navigation mappings. Hit `<cr>` to play the selection,
+`<esc>` to close or `<s-tab>` to switch back to prompt focus.
+
+The player controls and search mode mappings are available both with
+prompt and window focus.
+
+**Further documentation**
 
 To open the vim documentation, run `:help thrasher`.
 

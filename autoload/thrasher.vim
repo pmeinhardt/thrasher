@@ -53,6 +53,7 @@ let s:regglobals = {}
 let s:state = {
   \   "player": "itunes",
   \   "input": ["", "", ""],
+  \   "focus": 1,
   \   "mode": s:modes[0],
   \   "list": []
   \ }
@@ -179,7 +180,42 @@ function! s:open()
   " set custom filetype
   setlocal filetype=thrasher
 
-  " install key mappings
+  " install common key mappings
+  nnoremap <buffer> <silent> <s-tab> :<c-u>call <sid>togglefocus()<cr>
+
+  " correct arrow keys
+  if has("termresponse") && v:termresponse =~? "\<esc>" ||
+    \ &term =~? '\vxterm|<k?vt|gnome|screen|linux|ansi|tmux'
+    for k in ["\A <up>", "\B <down>", "\C <right>", "\D <left>"]
+      execute "nnoremap <buffer> <silent> <esc>[" . k
+    endfor
+  endif
+
+  " set focus
+  call s:focus()
+endfunction
+
+function! s:close()
+  bunload! "" . s:bufname
+
+  " restore globals
+  for k in keys(s:bufglobals)
+    if exists("+" . k)
+      silent! execute "let &" . k . " = s:regglobals['" . k . "']"
+    endif
+  endfor
+
+  " drop buffer information
+  unlet! s:bufnr s:winw
+
+  " clear echo line
+  echo
+endfunction
+
+function! s:focus()
+  let s:state.focus = 1
+
+  " install prompt key mappings
   nnoremap <buffer> <silent> <esc>    :<c-u>call thrasher#exit()<cr>
   nnoremap <buffer> <silent> <c-c>    :<c-u>call thrasher#exit()<cr>
 
@@ -207,14 +243,6 @@ function! s:open()
   nnoremap <buffer> <silent> <c-w>    :<c-u>call <sid>delword()<cr>
   nnoremap <buffer> <silent> <c-u>    :<c-u>call <sid>delline()<cr>
 
-  " correct arrow keys
-  if has("termresponse") && v:termresponse =~? "\<esc>" ||
-    \ &term =~? '\vxterm|<k?vt|gnome|screen|linux|ansi|tmux'
-    for k in ["\A <up>", "\B <down>", "\C <right>", "\D <left>"]
-      execute "nnoremap <buffer> <silent> <esc>[" . k
-    endfor
-  endif
-
   " accept input (ascii range 32 through 126)
   let mapcmd = 'nnoremap <buffer> <silent> <char-%d> ' .
     \ ':<c-u>call <sid>%s("%s")<cr>'
@@ -228,23 +256,47 @@ function! s:open()
   for code in [34, 92, 124]
     execute printf(mapcmd, code, keyfn, escape(nr2char(code), '"|\'))
   endfor
+
+  " update prompt
+  call s:renderprompt(s:state)
 endfunction
 
-function! s:close()
-  bunload! "" . s:bufname
+function! s:unfocus()
+  let s:state.focus = 0
 
-  " restore globals
-  for k in keys(s:bufglobals)
-    if exists("+" . k)
-      silent! execute "let &" . k . " = s:regglobals['" . k . "']"
-    endif
+  " disable prompt key mappings
+  nunmap <buffer> <c-j>
+  nunmap <buffer> <down>
+  nunmap <buffer> <c-k>
+  nunmap <buffer> <up>
+  nunmap <buffer> <c-h>
+  nunmap <buffer> <left>
+  nunmap <buffer> <c-l>
+  nunmap <buffer> <right>
+  nunmap <buffer> <c-a>
+  nunmap <buffer> <c-e>
+  nunmap <buffer> <bs>
+  nunmap <buffer> <del>
+  nunmap <buffer> <c-w>
+  nunmap <buffer> <c-u>
+
+  " disable prompt input
+  let unmapcmd = 'nunmap <buffer> <silent> <char-%d>'
+
+  for code in range(32, 126)
+    execute printf(unmapcmd, code)
   endfor
 
-  " drop buffer information
-  unlet! s:bufnr s:winw
+  " update prompt
+  call s:renderprompt(s:state)
+endfunction
 
-  " clear echo line
-  echo
+function! s:togglefocus()
+  if s:state.focus
+    call s:unfocus()
+  else
+    call s:focus()
+  endif
 endfunction
 
 " Control
@@ -324,7 +376,9 @@ function! s:renderprompt(state)
     let input[1] = "_"
   endif
 
-  execute "echoh " . hlbase . " | echon '>>> '" .
+  let prompt = a:state.focus ? ">>> " : "--- "
+
+  execute "echoh " . hlbase . " | echon '" . prompt . "'" .
     \ " | echoh " . hldefault . " | echon '" . input[0] . "'" .
     \ " | echoh " . hlcursor  . " | echon '" . input[1] . "'" .
     \ " | echoh " . hldefault . " | echon '" . input[2] . "'" .
