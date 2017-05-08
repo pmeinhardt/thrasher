@@ -73,6 +73,7 @@ function! thrasher#itunes#play(query)
             " Play playlist at track - by name
             return s:jxa("function run(argv) { let app = Application('iTunes'); let pl = app.playlists.byName('" . a:query["collection"] . "'); let tr = pl.tracks.byName('" . a:query["name"] . "'); pl.play(); app.stop(); tr.play();}")
         else
+            " Play track - by id and fall back to queue
             return s:jxa("function run(argv) { let app = Application('iTunes'); let lib = app.playlists.byName('Library'); app.stop(); app.play(lib.tracks.byId(" . a:query["id"] . ")); }")
         endif
     endif
@@ -112,5 +113,5 @@ function! thrasher#itunes#notify(message)
     if g:thrasher_verbose
         echom a:message
     endif
-    return eval(s:jxa("function run(argv) { var app = Application.currentApplication(); app.includeStandardAdditions = true; app.displayNotification('" . a:message . "', { withTitle: 'Thrasher' }); }"))
+    return eval(s:jxa("function run(argv) { let app = Application.currentApplication(); let info = '"  . a:message . "'; app.includeStandardAdditions = true; app.displayNotification(info, { withTitle: 'Thrasher' }); }"))
 endfunction
