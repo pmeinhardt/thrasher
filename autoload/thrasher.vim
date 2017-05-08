@@ -39,8 +39,8 @@ let s:hl = {
 let s:modes = [
   \   "any",
   \   "artist",
-  \   "album",
-  \   "track"
+  \   "collection",
+  \   "track",
   \ ]
 
 " Variables
@@ -105,10 +105,11 @@ function! thrasher#prev()
 endfunction
 
 function! thrasher#status()
-  let status = s:dispatch(s:state.player, "status")
-  let track = status.track
-  let info = join([track.name, track.album, track.artist], ", ")
-  echom status.state . ": " . info
+      let status = s:dispatch(s:state.player, "status")
+      let track = status.track
+      let info = join([track.name, track.collection, track.artist], ", ")
+      " echom status.state . ": " . info
+      return strpart(status.state . ": " . info, 0, 45)
 endfunction
 
 " Interface
@@ -320,7 +321,9 @@ endfunction
 function! s:accept()
   if empty(s:state.list) | return | endif
   let index = line(".") - 1
-  call thrasher#play({"obj": s:state.list[index]})
+  " call thrasher#play({"obj": s:state.list[index]})
+  echom s:state.list[index]['collection']
+  call thrasher#play(s:state.list[index])
 endfunction
 
 " Rendering
@@ -348,7 +351,7 @@ function! s:renderbuffer(state)
     setlocal cursorline
     let i = 1
     for t in tracks
-      call setline(i, t.name)
+      call setline(i, t.collection . ' : ' . t.name)
       let i += 1
     endfor
   endif

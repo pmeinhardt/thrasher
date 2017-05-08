@@ -23,7 +23,13 @@ let s:cache = []
 
 function! thrasher#itunes#init()
   if empty(s:cache)
-    let s:cache = eval(s:jxa("function run(argv) { var app = Application('iTunes'); var lib = app.playlists.byName('Library'); return JSON.stringify(lib.tracks().map(function (t) { return {id: t.id(), name: t.name(), album: t.album(), artist: t.artist()}; })); }"))
+    " Library on-line
+    " let s:cache = eval(s:jxa("function run(argv) { let app = Application('iTunes'); let lib = app.playlists.byName('Library'); let tracks = lib.tracks(); return JSON.stringify(tracks.map(function (t) { return {id: t.id(), name: t.name(), album: t.album(), artist: t.artist()}; })); }"))
+    " Library filtered - off-line
+   " let s:cache = eval(s:jxa("function run(argv) { let app = Application('iTunes'); let lib = app.playlists.byName('Library'); let tracks = lib.tracks().filter(function (t) { return t.class() === 'fileTrack';}); return JSON.stringify(tracks.map(function (t) { return {id: t.id(), name: t.name(), album: t.album(), artist: t.artist()}; })); }"))
+    " Apple Music 
+   " let s:cache = eval(s:jxa("function run(argv) { let app = Application('iTunes'); let n = app.sources['Library'].subscriptionPlaylists.length;	 var tracks = []; for (let i = 0; i < n; i++) { let p = app.sources['Library'].subscriptionPlaylists[i]; tracks = tracks.concat(p.tracks());} return JSON.stringify(tracks.map(function (t) { return {id: t.id(), name: t.name(), album: t.album(), artist: t.artist()}; }));}"))
+   let s:cache = eval(s:jxa("function run(argv) { let app = Application('iTunes'); let n = app.sources['Library'].subscriptionPlaylists.length;	 var tracks = []; for (let i = 0; i < n; i++) { let p = app.sources['Library'].subscriptionPlaylists[i]; tracks = tracks.concat(p.tracks().map(function (t) { return {id: t.id(), name: t.name(), collection: p.name(), artist: t.artist()}; }));}return JSON.stringify(tracks);}"))
   endif
 endfunction
 
@@ -36,7 +42,7 @@ function! thrasher#itunes#search(query, mode)
 
   let prop = (a:mode ==# "track") ? "name" : a:mode
 
-  if prop ==# "artist" || prop ==# "album" || prop ==# "name"
+  if prop ==# "artist" || prop ==# "collection" || prop ==# "name"
     let filtfn = printf("match(v:val['" . prop . "'], '%s') >= 0", a:query)
   else
     let filtfn = printf("match(values(v:val), '%s') >= 0", a:query)
@@ -50,13 +56,14 @@ endfunction
 
 function! thrasher#itunes#play(query)
   if !empty(a:query)
-    if has_key(a:query, "obj")
-      return s:jxa("function run(argv) { var app = Application('iTunes'); var lib = app.playlists.byName('Library'); return app.play(lib.tracks.byId(" . a:query["obj"]["id"] . ")); }")
-    else
-      return s:jxa("function run(argv) { var app = Application('iTunes'); var lib = app.playlists.byName('Library'); var tracks = lib.search({for: 'Metallica', only: 'artists'}); return app.play(tracks[0]); }")
-    endif
+    " if has_key(a:query, "obj")
+      " return s:jxa("function run(argv) { var app = Application('iTunes'); var lib = app.playlists.byName('Library'); app.stop(); return app.play(lib.tracks.byId(" . a:query["obj"]["id"] . ")); }")
+      " Play Apple Music playlist by name
+      return s:jxa("function run(argv) { var app = Application('iTunes'); var lib = app.playlists.byName('Library'); app.stop(); let pl= app.sources['Library'].subscriptionPlaylists['" . a:query["collection"] . "']; pl.play()}")
+    " endif
   endif
-  return s:jxa("function run(argv) { var app = Application('iTunes'); return app.play(); }")
+  " Play from entire Music library [0] = Music
+  return s:jxa("function run(argv) { let app = Application('iTunes'); let p = app.sources['Library'].userPlaylists[0]; return p.play(); }")
 endfunction
 
 function! thrasher#itunes#pause()
@@ -80,5 +87,9 @@ function! thrasher#itunes#prev()
 endfunction
 
 function! thrasher#itunes#status()
-  return eval(s:jxa("function run(argv) { var app = Application('iTunes'); var track = app.currentTrack(); return JSON.stringify({state: app.playerState(), track: {name: track.name(), album: track.album(), artist: track.artist()}}); }"))
+  return eval(s:jxa("function run(argv) { var app = Application('iTunes'); var playerState = app.playerState(); try {var track = app.currentTrack(); return JSON.stringify({state: playerState, track: {name: track.name(), album: track.album(), artist: track.artist()}});} catch(e) { return JSON.stringify({state: playerState, track: {name: '', album: '', artist: ''} })}} "))
+endfunction
+
+function! thrasher#itunes#version()
+  return eval(s:jxa("function run(argv) { var app = Application('iTunes'); return app.version(); }"))
 endfunction
