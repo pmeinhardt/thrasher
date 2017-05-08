@@ -1,6 +1,10 @@
-# JXA snippets
+# JXA snippets and notes
 
 Javascript for Automation 
+
+_Update: As of macOS Sierra, the JXA JavaScriptCore is that from Safari ~10.1, which supports not only 100% of ECMAScript 6, according to Kangax's table, but even parts of ES2017 (‘ES7’), like async functions! Go wild, if your scripts will only ever run on Sierra and above_
+
+[JavaScript for Automation grinding to a halt](https://apple.stackexchange.com/questions/273538/javascript-for-automation-grinding-to-a-halt)_
 
 ### Compile
 
