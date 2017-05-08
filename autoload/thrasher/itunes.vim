@@ -113,5 +113,5 @@ function! thrasher#itunes#notify(message)
     if g:thrasher_verbose
         echom a:message
     endif
-    return eval(s:jxa("function run(argv) { let app = Application.currentApplication(); let info = '"  . a:message . "'; app.includeStandardAdditions = true; app.displayNotification(info, { withTitle: 'Thrasher' }); }"))
+    let error = s:jxa("function run(argv) { let app = Application.currentApplication(); let info = '"  . a:message . "'; app.includeStandardAdditions = true; app.displayNotification(info, { withTitle: 'Thrasher' }); }")
 endfunction
