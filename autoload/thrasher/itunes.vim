@@ -27,7 +27,7 @@ function! thrasher#itunes#init()
         " let s:cache = eval(s:jxa("function run(argv) { let app = Application('iTunes'); let lib = app.playlists.byName('Library'); let tracks = lib.tracks().filter(function (t) { return t.class() === 'fileTrack';}); return JSON.stringify(tracks.map(function (t) { return {id: t.id(), name: t.name(), album: t.album(), artist: t.artist()}; })); }"))
         " Apple Music 
         " let s:cache = eval(s:jxa("function run(argv) { let app = Application('iTunes'); let n = app.sources['Library'].subscriptionPlaylists.length;	 var tracks = []; for (let i = 0; i < n; i++) { let p = app.sources['Library'].subscriptionPlaylists[i]; tracks = tracks.concat(p.tracks());} return JSON.stringify(tracks.map(function (t) { return {id: t.id(), name: t.name(), album: t.album(), artist: t.artist()}; }));}"))
-        if g:thrasher_mode = 0
+        if g:thrasher_mode
             " Apple Music playlists
             let s:cache = eval(s:jxa("function run(argv) { let app = Application('iTunes'); let n = app.sources['Library'].subscriptionPlaylists.length;	 var tracks = []; for (let i = 0; i < n; i++) { let p = app.sources['Library'].subscriptionPlaylists[i]; tracks = tracks.concat(p.tracks().map(function (t) { return {id: t.id(), name: t.name(), collection: p.name(), artist: t.artist()}; }));}return JSON.stringify(tracks);}"))
         else
@@ -105,4 +105,8 @@ endfunction
 
 function! thrasher#itunes#version()
     return eval(s:jxa("function run(argv) { var app = Application('iTunes'); return app.version(); }"))
+endfunction
+
+function! thrasher#itunes#notify(message)
+    return eval(s:jxa("function run(argv) { var app = Application.currentApplication(); app.includeStandardAdditions = true; app.displayNotification(" . a:message . ", { withTitle: 'Thrasher' }); }"))
 endfunction
