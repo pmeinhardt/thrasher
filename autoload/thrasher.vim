@@ -111,7 +111,11 @@ function! thrasher#status()
     if g:thrasher_verbose
         echom status.state . ": " . info
     endif
-    return strpart(status.state . ": " . info, 0, 45)
+    if g:thrasher_notify
+        return s:dispatch(s:state.player, "notify", status.state . ": " . info)
+    else
+        return strpart(status.state . ": " . info, 0, 45)
+    endif
 endfunction
 
 " Interface

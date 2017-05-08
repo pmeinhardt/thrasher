@@ -28,10 +28,11 @@ function! thrasher#itunes#init()
         " Apple Music 
         " let s:cache = eval(s:jxa("function run(argv) { let app = Application('iTunes'); let n = app.sources['Library'].subscriptionPlaylists.length;	 var tracks = []; for (let i = 0; i < n; i++) { let p = app.sources['Library'].subscriptionPlaylists[i]; tracks = tracks.concat(p.tracks());} return JSON.stringify(tracks.map(function (t) { return {id: t.id(), name: t.name(), album: t.album(), artist: t.artist()}; }));}"))
         if g:thrasher_mode
-            " Apple Music playlists
+            " Apple Music playlists - collection = Apple Music playlist
+            " (subscriptionPlaylist)
             let s:cache = eval(s:jxa("function run(argv) { let app = Application('iTunes'); let n = app.sources['Library'].subscriptionPlaylists.length;	 var tracks = []; for (let i = 0; i < n; i++) { let p = app.sources['Library'].subscriptionPlaylists[i]; tracks = tracks.concat(p.tracks().map(function (t) { return {id: t.id(), name: t.name(), collection: p.name(), artist: t.artist()}; }));}return JSON.stringify(tracks);}"))
         else
-            " Library on-line
+            " Library on-line - colection = album
             let s:cache = eval(s:jxa("function run(argv) { let app = Application('iTunes'); let lib = app.playlists.byName('Library'); let tracks = lib.tracks(); return JSON.stringify(tracks.map(function (t) { return {id: t.id(), name: t.name(), collection: t.album(), artist: t.artist()}; })); }"))
         endif
     endif
