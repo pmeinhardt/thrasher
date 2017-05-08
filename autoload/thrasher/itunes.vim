@@ -59,7 +59,9 @@ function! thrasher#itunes#play(query)
     " if has_key(a:query, "obj")
       " return s:jxa("function run(argv) { var app = Application('iTunes'); var lib = app.playlists.byName('Library'); app.stop(); return app.play(lib.tracks.byId(" . a:query["obj"]["id"] . ")); }")
       " Play Apple Music playlist by name
-      return s:jxa("function run(argv) { var app = Application('iTunes'); var lib = app.playlists.byName('Library'); app.stop(); let pl= app.sources['Library'].subscriptionPlaylists['" . a:query["collection"] . "']; pl.play()}")
+      " return s:jxa("function run(argv) { var app = Application('iTunes'); var lib = app.playlists.byName('Library'); app.stop(); let pl= app.sources['Library'].subscriptionPlaylists['" . a:query["collection"] . "']; pl.play()}")
+      " Play playlist at track - by name
+      return s:jxa("function run(argv) { var app = Application('iTunes'); var pl = app.playlists.byName('" . a:query["collection"] . "'); var tr = pl.tracks.byName('" . a:query["name"] . "'); pl.play(tr)}")
     " endif
   endif
   " Play from entire Music library [0] = Music
