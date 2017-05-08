@@ -61,7 +61,10 @@ function! thrasher#itunes#play(query)
       " Play Apple Music playlist by name
       " return s:jxa("function run(argv) { var app = Application('iTunes'); var lib = app.playlists.byName('Library'); app.stop(); let pl= app.sources['Library'].subscriptionPlaylists['" . a:query["collection"] . "']; pl.play()}")
       " Play playlist at track - by name
-      return s:jxa("function run(argv) { var app = Application('iTunes'); var pl = app.playlists.byName('" . a:query["collection"] . "'); var tr = pl.tracks.byName('" . a:query["name"] . "'); pl.play(tr)}")
+      if g:thrasher_verbose
+          echom  a:query["name"] . " / " .  a:query["collection"]
+      endif
+      return s:jxa("function run(argv) { var app = Application('iTunes'); let pl = app.playlists.byName('" . a:query["collection"] . "'); let tr = pl.tracks.byName('" . a:query["name"] . "'); pl.play(); app.stop(); tr.play();}")
     " endif
   endif
   " Play from entire Music library [0] = Music
