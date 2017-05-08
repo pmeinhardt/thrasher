@@ -109,5 +109,8 @@ function! thrasher#itunes#version()
 endfunction
 
 function! thrasher#itunes#notify(message)
-    return eval(s:jxa("function run(argv) { var app = Application.currentApplication(); app.includeStandardAdditions = true; app.displayNotification(" . a:message . ", { withTitle: 'Thrasher' }); }"))
+    if g:thrasher_verbose
+        echom a:message
+    endif
+    return eval(s:jxa("function run(argv) { var app = Application.currentApplication(); app.includeStandardAdditions = true; app.displayNotification('" . a:message . "', { withTitle: 'Thrasher' }); }"))
 endfunction
