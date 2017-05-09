@@ -6,7 +6,7 @@ if exists("g:autoloaded_thrasher")
 endif
 
 if !executable('osascript')
-    echom ('thrasher: Cannot find osascript')
+    echom ('Thrasher: Cannot find osascript')
     finish
 endif
 
@@ -363,7 +363,7 @@ function! s:renderbuffer(state)
         setlocal cursorline
         let i = 1
         for t in tracks
-            call setline(i, t.collection . ' : ' . t.name)
+            call setline(i, t.collection . ' : ' . t.name . ' [' . t.artist . ']' )
             let i += 1
         endfor
     endif
