@@ -122,6 +122,19 @@ function! thrasher#status()
     endif
 endfunction
 
+function! thrasher#refresh()
+    return s:dispatch(s:state.player, "refresh")
+endfunction
+
+function! thrasher#librarytoggle()
+    if g:thrasher_mode
+        let g:thrasher_mode = 0
+    else
+        let g:thrasher_mode = 1
+    endif
+    return s:dispatch(s:state.player, "refresh")
+endfunction
+
 " Interface
 
 function! thrasher#run()
@@ -391,7 +404,11 @@ function! s:renderprompt(state)
         let input[1] = "_"
     endif
 
-    let prompt = a:state.focus ? ">>> " : "--- "
+    if has("multi_byte")
+        let prompt = a:state.focus ? "⚡️" : "🎧"
+    else
+        let prompt = a:state.focus ? ">>> " : "--- "
+    endif
 
     execute "echoh " . hlbase . " | echon '" . prompt . "'" .
                 \ " | echoh " . hldefault . " | echon '" . input[0] . "'" .

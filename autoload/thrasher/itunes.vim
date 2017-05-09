@@ -1,18 +1,28 @@
 " Location: autoload/thrasher/itunes.vim
 " Author:   Paul Meinhardt <https://github.com/pmeinhardt>
 
-if exists("g:loaded_thrasher_itunes") || v:version < 700
+" Make sure we're running VIM version 8 or higher.
+if exists("g:loaded_thrasher_itunes") || v:version < 800
+    if v:version < 800
+        echoerr 'Thrasher:refreshLibrary() is using async and requires VIM version 8 or higher'
+    endif
     finish
 endif
 let g:loaded_thrasher_itunes = 1
 
 " Helper functions
 function! s:saveVariable(var, file)
-    call writefile([string(a:var)], a:file)
+    if filewritable(a:file)
+        call writefile([string(a:var)], a:file)
+    endif
 endfunction
 
 function! s:restoreVariable(file)
-    let recover = readfile(a:file)[0]
+    if filereadable(a:file)
+        let recover = readfile(a:file)[0]
+    else
+        echoerr string(a:files) . " not readable. Cannot restore variable!"
+    endif
     execute "let result = " . recover
     return result
 endfunction
@@ -21,17 +31,38 @@ function! s:getLibrary(mode)
 " TODO - add filtering On-line, Off-line Combine Music and Library (and
 " Tracks?)
     if a:mode
-        let s:library = s:files.Music
+        let s:path = s:files.Music
     else
-        let s:library = s:files.Library
+        let s:path = s:files.Library
     endif
     " let s:library = s:files.Tracks
-    if filereadable(s:library)
-        if g:thrasher_verbose | echom "search script: " . s:library | endif
-        echom "Thrasher: collecting iTunes Library takes a while"
-        return eval(s:jxaexecutable(s:library))
+    if filereadable(s:path)
+        " return eval(s:jxaexecutable(s:path))
+        call s:refreshLibrary(s:path)
+        if g:thrasher_verbose | echom "Collecting iTunes Library can take a while" | endif
     else
-        echom "search script: Cannot find JXA executable at " . s:library
+        echoerr "search script: Cannot find JXA executable at " . s:path
+    endif
+endfunction
+
+" Async helpers
+
+function! RefreshLibraryJobEnd(channel)
+    let s:cache = s:restoreVariable(g:thrasher_refreshLibrary)
+    " call s:saveVariable(s:cache, s:files.Cache)
+    if g:thrasher_verbose | echom 'iTunes Library refreshed' | endif
+    unlet g:thrasher_refreshLibrary
+endfunction
+
+function! s:refreshLibrary(path)
+    if exists('g:thrasher_refreshLibrary')
+        if g:thrasher_verbose | echom 'refreshLibrary task is already running in background' | endif
+    else
+        if g:thrasher_verbose | echom 'Refreshing iTunes Library in background' | endif
+        let g:thrasher_refreshLibrary = s:files.Cache 
+        let cmd = ['osascript', '-l', 'JavaScript',  a:path]
+        if g:thrasher_verbose | echom string(cmd) | endif
+        let job = job_start(cmd, {'close_cb': 'RefreshLibraryJobEnd', 'out_io': 'file', 'out_name': g:thrasher_refreshLibrary})
     endif
 endfunction
 
@@ -42,8 +73,8 @@ function! s:jxa(code)
     return substitute(output, "\n$", "", "")
 endfunction
 
-" TODO calling external JXA script (compiled) seems like overkill
-" but wait.. I have something on my mind
+" Calling external JXA scripts (compiled) seems like overkill
+" but wait.. We could use them in async. 
 function! s:jxaexecutable(path)
     let output = system('osascript -l JavaScript ' . a:path )
     return substitute(output, "\n$", "", "")
@@ -67,12 +98,13 @@ let s:files = {
 
 function! thrasher#itunes#init()
     if filereadable(s:files.Cache) | let s:cache = s:restoreVariable(s:files.Cache) | endif
-    if empty(s:cache) | let s:cache = s:getLibrary(g:thrasher_mode) | endif
+    " if empty(s:cache) | let s:cache = s:getLibrary(g:thrasher_mode) | endif
+    call s:getLibrary(g:thrasher_mode)
 endfunction
 
 function! thrasher#itunes#exit()
     call s:saveVariable(s:cache, s:files.Cache)
-    if g:thrasher_verbose | echom "s:cache saved to file " . s:files.Cache | endif
+    if g:thrasher_verbose | echom "iTunes Library saved to file " . s:files.Cache | endif
     let s:cache = []
 endfunction
 
@@ -125,6 +157,10 @@ endfunction
 
 function! thrasher#itunes#notify(message)
     let error = s:jxa("function run(argv) { let app = Application.currentApplication(); let info = '"  . a:message . "'; app.includeStandardAdditions = true; app.displayNotification(info, { withTitle: 'Thrasher' }); }")
+endfunction
+
+function! thrasher#itunes#refresh()
+    call s:getLibrary(g:thrasher_mode)
 endfunction
 
 function! thrasher#itunes#version()
