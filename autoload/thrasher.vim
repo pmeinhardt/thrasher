@@ -405,7 +405,7 @@ function! s:renderprompt(state)
     endif
 
     if has("multi_byte")
-        let prompt = a:state.focus ? "⚡️" : "🎧"
+        let prompt = a:state.focus ? "🎧⚡️🎸" : "🎷🎹🎻"
     else
         let prompt = a:state.focus ? ">>> " : "--- "
     endif
