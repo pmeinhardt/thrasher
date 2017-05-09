@@ -4,6 +4,12 @@
 if exists("g:autoloaded_thrasher")
     finish
 endif
+
+if !executable('osascript')
+    echom ('thrasher: Cannot find osascript')
+    finish
+endif
+
 let g:autoloaded_thrasher = 1
 
 " Configuration
@@ -42,6 +48,13 @@ let s:modes = [
             \   "collection",
             \   "track",
             \ ]
+
+let s:dir = expand('<sfile>:p:h')
+let s:files = {
+\ 'Music':      s:dir . '/jxa/iTunes_Music.scpt',
+\ 'Library':    s:dir . '/jxa/iTunes_Library.scpt',
+\ 'Tracks':     s:dir . '/jxa/iTunes_Tracks.scpt'
+\ }
 
 " Variables
 
