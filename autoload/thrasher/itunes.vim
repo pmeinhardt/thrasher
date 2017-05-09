@@ -23,9 +23,9 @@ let s:cache = []
 " Folder in which scripts resides: (not safe for symlinks)
 let s:dir = expand('<sfile>:p:h')
 let s:files = {
-\ 'Music':      s:dir . '/jxa/iTunes_Music.scpt',
-\ 'Library':    s:dir . '/jxa/iTunes_Library.scpt',
-\ 'Tracks':     s:dir . '/jxa/iTunes_Tracks.scpt'
+\ 'Music':      s:dir . '/iTunes_Music.scpt',
+\ 'Library':    s:dir . '/iTunes_Library.scpt',
+\ 'Tracks':     s:dir . '/iTunes_Tracks.scpt'
 \ }
 
 function! thrasher#itunes#init()
