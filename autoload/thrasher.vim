@@ -49,6 +49,7 @@ let s:modes = [
             \   "track",
             \ ]
 
+" Folder in which script resides: (not safe for symlinks)
 let s:dir = expand('<sfile>:p:h')
 let s:files = {
 \ 'Music':      s:dir . '/jxa/iTunes_Music.scpt',
