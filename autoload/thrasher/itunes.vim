@@ -33,7 +33,7 @@ let s:files = {
 \ 'Music':      s:dir . '/iTunes_Music.scpt',
 \ 'Library':    s:dir . '/iTunes_Library.scpt',
 \ 'Tracks':     s:dir . '/iTunes_Tracks.scpt',
-\ 'Cache':      s:dir   '/Library_Cache.txt'
+\ 'Cache':      s:dir . '/Library_Cache.txt'
 \ }
 
 function! thrasher#itunes#init()
