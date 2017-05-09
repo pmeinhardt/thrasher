@@ -33,7 +33,7 @@ let s:files = {
 \ 'Music':      s:dir . '/iTunes_Music.scpt',
 \ 'Library':    s:dir . '/iTunes_Library.scpt',
 \ 'Tracks':     s:dir . '/iTunes_Tracks.scpt',
-\ 'Cache':      s:dir   '/Library_Cache.txt' 
+\ 'Cache':      s:dir   '/Library_Cache.txt'
 \ }
 
 function! thrasher#itunes#init()
@@ -46,6 +46,7 @@ function! thrasher#itunes#init()
         " let s:library = s:files.Tracks
         if filereadable(s:library)
             if g:thrasher_verbose | echom "search script: " . s:library | endif
+            echom "Thrasher: searching library takes a while"
             let s:cache = eval(s:jxaexecutable(s:library))
         else
             echom "search script: Cannot find JXA executable at " . s:library

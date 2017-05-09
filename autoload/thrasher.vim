@@ -114,14 +114,12 @@ function! thrasher#status()
     let status = s:dispatch(s:state.player, "status")
     let track = status.track
     let info = join([track.name, track.collection, track.artist], ", ")
-    if g:thrasher_verbose
-        echom status.state . ": " . info
-    endif
+    if g:thrasher_verbose | echom status.state . ": " . info | endif
     if g:thrasher_notify
         return s:dispatch(s:state.player, "notify", status.state . ": " . info)
     else
         return strpart(status.state . ": " . info, 0, 45)
-    end
+    endif
 endfunction
 
 " Interface
@@ -334,7 +332,7 @@ function! s:accept()
     if empty(s:state.list) | return | endif
     let index = line(".") - 1
     " call thrasher#play({"obj": s:state.list[index]})
-    if g:thrasher_verbose | "Playing from collection: ". echom s:state.list[index]['collection'] | endif
+    if g:thrasher_verbose | echom "Playing from collection: " .  s:state.list[index]['collection'] | endif
     call thrasher#play(s:state.list[index])
 endfunction
 
