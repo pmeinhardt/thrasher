@@ -49,6 +49,7 @@ let s:files = {
 \ }
 
 function! thrasher#itunes#init()
+    let s:cache = eval(ReadVariable(s:files.Cache))
     if empty(s:cache)
         if g:thrasher_mode
             let s:library = s:files.Music
