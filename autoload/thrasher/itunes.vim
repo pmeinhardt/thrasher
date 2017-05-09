@@ -46,7 +46,7 @@ function! thrasher#itunes#init()
         " let s:library = s:files.Tracks
         if filereadable(s:library)
             if g:thrasher_verbose | echom "search script: " . s:library | endif
-            echom "Thrasher: searching library takes a while"
+            echom "Thrasher: collecting iTunes Library takes a while"
             let s:cache = eval(s:jxaexecutable(s:library))
         else
             echom "search script: Cannot find JXA executable at " . s:library
@@ -55,13 +55,14 @@ function! thrasher#itunes#init()
 endfunction
 
 function! thrasher#itunes#exit()
-    " truncate - on MacOS brew gnutils with prefix TODO - make more universal
     if filereadable(s:library)
         call system("echo -n > " . s:files.Cache)
     else
          call system("touch " . s:files.Cache)
     endif
-    redir! s:files.Cache | echo s:cache | redir end
+    redir! > s:files.Cache
+        echo s:cache
+    redir END
     if g:thrasher_verbose | echom "s:cache saved to file " . s:files.Cache | endif
     let s:cache = []
 endfunction
