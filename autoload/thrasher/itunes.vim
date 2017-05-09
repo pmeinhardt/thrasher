@@ -6,6 +6,18 @@ if exists("g:loaded_thrasher_itunes") || v:version < 700
 endif
 let g:loaded_thrasher_itunes = 1
 
+" Helper functions
+function! s:saveVariable(var, file)
+    call writefile([string(a:var)], a:file)
+endfunction
+
+function! s:readVariable(file)
+    let recover = readfile(a:file)[0]
+    " it is so far just a string, make it what it should be:
+    execute "let result = " . recover
+    return result
+endfunction
+
 " JavaScript for Automation helpers (Mac OS X)
 
 function! s:jxa(code)
@@ -55,12 +67,7 @@ function! thrasher#itunes#init()
 endfunction
 
 function! thrasher#itunes#exit()
-    if filereadable(s:library)
-        call system("echo -n > " . s:files.Cache)
-    else
-         call system("touch " . s:files.Cache)
-    endif
-    call system("echo \"" . string(s:cache) . "\" > " .  s:files.Cache )
+    call s:saveVariable(s:cache, s:files.Cache)
     if g:thrasher_verbose | echom "s:cache saved to file " . s:files.Cache | endif
     let s:cache = []
 endfunction
