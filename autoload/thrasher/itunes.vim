@@ -39,7 +39,7 @@ function! thrasher#itunes#init()
             " (subscriptionPlaylist)
             if filereadable(s:files.Music)
                 if g:thrasher_verbose | echom s:files.Tracks | endif
-                let s:cache = system('osascript -l JavaScript ' . s:files.Music . ')
+                let s:cache = system('osascript -l JavaScript ' . s:files.Music )
             else
                 let s:cache = eval(s:jxa("function run(argv) { let app = Application('iTunes'); let n = app.sources['Library'].subscriptionPlaylists.length;	 var tracks = []; for (let i = 0; i < n; i++) { let p = app.sources['Library'].subscriptionPlaylists[i]; tracks = tracks.concat(p.tracks().map(function (t) { return {id: t.id(), name: t.name(), collection: p.name(), artist: t.artist()}; }));}return JSON.stringify(tracks);}"))
             endif
@@ -47,7 +47,7 @@ function! thrasher#itunes#init()
             " Library on-line - colection = album
             if filereadable(s:files.Tracks)
                 if g:thrasher_verbose | echom s:files.Tracks | endif
-                let s:cache = system('osascript -l JavaScript ' . s:files.Tracks. ')
+                let s:cache = system('osascript -l JavaScript ' . s:files.Tracks )
             else
                 let s:cache = eval(s:jxa("function run(argv) { let app = Application('iTunes'); let lib = app.playlists.byName('Library'); let tracks = lib.tracks(); return JSON.stringify(tracks.map(function (t) { return {id: t.id(), name: t.name(), collection: t.album(), artist: t.artist()}; })); }"))
             endif
