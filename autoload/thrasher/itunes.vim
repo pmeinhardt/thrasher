@@ -13,6 +13,8 @@ function! s:jxa(code)
     return substitute(output, "\n$", "", "")
 endfunction
 
+" TODO calling external JXA script (compiled) seems like overkill
+" but wait.. I have something on my mind
 function! s:jxaexecutable(path)
     let output = system('osascript -l JavaScript ' . a:path )
     return substitute(output, "\n$", "", "")
@@ -34,31 +36,27 @@ let s:files = {
 \ }
 
 function! thrasher#itunes#init()
-    " if empty(s:cache)
-        " Library filtered - off-line
-        " let s:cache = eval(s:jxa("function run(argv) { let app = Application('iTunes'); let lib = app.playlists.byName('Library'); let tracks = lib.tracks().filter(function (t) { return t.class() === 'fileTrack';}); return JSON.stringify(tracks.map(function (t) { return {id: t.id(), name: t.name(), album: t.album(), artist: t.artist()}; })); }"))
-        " Apple Music 
-        " let s:cache = eval(s:jxa("function run(argv) { let app = Application('iTunes'); let n = app.sources['Library'].subscriptionPlaylists.length;	 var tracks = []; for (let i = 0; i < n; i++) { let p = app.sources['Library'].subscriptionPlaylists[i]; tracks = tracks.concat(p.tracks());} return JSON.stringify(tracks.map(function (t) { return {id: t.id(), name: t.name(), album: t.album(), artist: t.artist()}; }));}"))
+    if empty(s:cache)
+
         if g:thrasher_mode
-            " Apple Music playlists - collection = Apple Music playlist
+            " Apple Music playlists [collection = Apple Music playlist]
             " (subscriptionPlaylist)
-            if filereadable(s:files.Music)
-                if g:thrasher_verbose | echom s:files.Tracks | endif
-                let s:cache = eval(s:jxaexecutable(s:files.Tracks))
-            else
-                let s:cache = eval(s:jxa("function run(argv) { let app = Application('iTunes'); let n = app.sources['Library'].subscriptionPlaylists.length;	 var tracks = []; for (let i = 0; i < n; i++) { let p = app.sources['Library'].subscriptionPlaylists[i]; tracks = tracks.concat(p.tracks().map(function (t) { return {id: t.id(), name: t.name(), collection: p.name(), artist: t.artist()}; }));}return JSON.stringify(tracks);}"))
-            endif
+            let s:library = s:files.Music
         else
-            " Library on-line - colection = album
-            if filereadable(s:files.Tracks)
-                if g:thrasher_verbose | echom s:files.Tracks | endif
-                let s:cache = eval(s:jxaexecutable(s:files.Tracks))
-            else
-                let s:cache = eval(s:jxa("function run(argv) { let app = Application('iTunes'); let lib = app.playlists.byName('Library'); let tracks = lib.tracks(); return JSON.stringify(tracks.map(function (t) { return {id: t.id(), name: t.name(), collection: t.album(), artist: t.artist()}; })); }"))
-            endif
+            " Library playlists [collection = Library playlist]
+            " (userPlaylist)
+            let s:library = s:files.Library
         endif
-        if g:thrasher_verbose | echom string(s:cache) | endif
-    " endif
+        " let s:library = s:files.Tracks
+        " Not active -  Library tracks [colection = album]
+
+        if filereadable(s:library)
+            if g:thrasher_verbose | echom s:library | endif
+            let s:cache = eval(s:jxaexecutable(s:library))
+        else
+            echom "Thrasher: Cannot find JXA executable " . s:library
+        endif
+    endif
 endfunction
 
 function! thrasher#itunes#exit()
@@ -84,25 +82,26 @@ endfunction
 
 function! thrasher#itunes#play(query)
     if !empty(a:query)
-        " if has_key(a:query, "obj")
-        " return s:jxa("function run(argv) { var app = Application('iTunes'); var lib = app.playlists.byName('Library'); app.stop(); return app.play(lib.tracks.byId(" . a:query["obj"]["id"] . ")); }")
-        " Play Apple Music playlist by name
-        " return s:jxa("function run(argv) { var app = Application('iTunes'); var lib = app.playlists.byName('Library'); app.stop(); let pl= app.sources['Library'].subscriptionPlaylists['" . a:query["collection"] . "']; pl.play()}")
-        
-        if g:thrasher_verbose
-            echom  a:query["name"] . " / " .  a:query["collection"]
-        endif
-        if g:thrasher_mode
-            " Play playlist at track - by name
-            return s:jxa("function run(argv) { let app = Application('iTunes'); let pl = app.playlists.byName('" . a:query["collection"] . "'); let tr = pl.tracks.byName('" . a:query["name"] . "'); pl.play(); app.stop(); tr.play();}")
-        else
-            " Play track - by id and fall back to queue
-            return s:jxa("function run(argv) { let app = Application('iTunes'); let lib = app.playlists.byName('Library'); app.stop(); app.play(lib.tracks.byId(" . a:query["id"] . ")); }")
-        endif
+        return s:jxa("function run(argv) { let app = Application('iTunes'); let pl = app.playlists.byName('" . a:query["collection"] . "'); let tr = pl.tracks.byName('" . a:query["name"] . "'); pl.play(); app.stop(); tr.play();}")
     endif
-    " Play from entire Music library [0] = Music
-    return s:jxa("function run(argv) { let app = Application('iTunes'); let pl = app.sources['Library'].userPlaylists[0]; return pl.play(); }")
 endfunction
+
+        " " if has_key(a:query, "obj")
+        " " return s:jxa("function run(argv) { var app = Application('iTunes'); var lib = app.playlists.byName('Library'); app.stop(); return app.play(lib.tracks.byId(" . a:query["obj"]["id"] . ")); }")
+        " " Play Apple Music playlist by name
+        " " return s:jxa("function run(argv) { var app = Application('iTunes'); var lib = app.playlists.byName('Library'); app.stop(); let pl= app.sources['Library'].subscriptionPlaylists['" . a:query["collection"] . "']; pl.play()}")
+        
+        " if g:thrasher_verbose | echom  a:query["name"] . " / " .  a:query["collection"] | endif
+        " if g:thrasher_mode
+        "     " Play playlist at track - by name
+        "     return s:jxa("function run(argv) { let app = Application('iTunes'); let pl = app.playlists.byName('" . a:query["collection"] . "'); let tr = pl.tracks.byName('" . a:query["name"] . "'); pl.play(); app.stop(); tr.play();}")
+        " else
+        "     " Play single track - by id and fall back to queue
+        "     return s:jxa("function run(argv) { let app = Application('iTunes'); let lib = app.playlists.byName('Library'); app.stop(); app.play(lib.tracks.byId(" . a:query["id"] . ")); }")
+        " endif
+    " endif
+    " " As a fallback play from entire Library [0] = Music
+    " return s:jxa("function run(argv) { let app = Application('iTunes'); let pl = app.sources['Library'].userPlaylists[0]; return pl.play(); }")
 
 function! thrasher#itunes#pause()
     let error = s:jxa("function run(argv) { var app = Application('iTunes'); return app.pause(); }")
