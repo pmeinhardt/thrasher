@@ -33,7 +33,7 @@ function! s:getLibrary(mode)
     else
         echom "search script: Cannot find JXA executable at " . s:library
     endif
-endif
+endfunction
 
 " JavaScript for Automation helpers (Mac OS X)
 

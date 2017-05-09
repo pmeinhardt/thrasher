@@ -58,7 +58,7 @@ let s:regglobals = {}
 
 let s:state = {
             \   "player": "itunes",
-            \   "input": ["", "", ""],
+            \   "input": [" ", "", ""],
             \   "focus": 1,
             \   "mode": s:modes[0],
             \   "list": []
