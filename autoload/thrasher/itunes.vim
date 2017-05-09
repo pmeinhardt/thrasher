@@ -66,10 +66,8 @@ let s:files = {
 \ }
 
 function! thrasher#itunes#init()
-    let s:cache = s:restoreVariable(s:files.Cache)
-    if empty(s:cache)
-        let s:cache = s:getLibrary(g:thrasher_mode)
-    endif
+    if filereadable(s:files.Cache) | let s:cache = s:restoreVariable(s:files.Cache) | endif
+    if empty(s:cache) | let s:cache = s:getLibrary(g:thrasher_mode) | endif
 endfunction
 
 function! thrasher#itunes#exit()

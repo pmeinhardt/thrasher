@@ -129,6 +129,7 @@ function! thrasher#run()
     let s:active = 1
 
     call s:dispatch(s:state.player, "init")
+    let s:state.list = thrasher#search("", s:state.mode)
 
     noautocmd call s:open()
     call s:render(s:state)
