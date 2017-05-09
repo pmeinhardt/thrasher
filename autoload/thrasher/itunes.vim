@@ -60,9 +60,7 @@ function! thrasher#itunes#exit()
     else
          call system("touch " . s:files.Cache)
     endif
-    redir! > s:files.Cache
-        echo s:cache
-    redir END
+    call system("echo " \"" . s:cache . "\" > " .  s:files.Cache )
     if g:thrasher_verbose | echom "s:cache saved to file " . s:files.Cache | endif
     let s:cache = []
 endfunction
