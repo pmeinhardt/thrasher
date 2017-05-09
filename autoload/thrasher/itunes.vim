@@ -11,12 +11,29 @@ function! s:saveVariable(var, file)
     call writefile([string(a:var)], a:file)
 endfunction
 
-function! s:readVariable(file)
+function! s:restoreVariable(file)
     let recover = readfile(a:file)[0]
-    " it is so far just a string, make it what it should be:
     execute "let result = " . recover
     return result
 endfunction
+
+function! s:getLibrary(mode)
+" TODO - add filtering On-line, Off-line Combine Music and Library (and
+" Tracks?)
+    if a:mode
+        let s:library = s:files.Music
+    else
+        let s:library = s:files.Library
+    endif
+    " let s:library = s:files.Tracks
+    if filereadable(s:library)
+        if g:thrasher_verbose | echom "search script: " . s:library | endif
+        echom "Thrasher: collecting iTunes Library takes a while"
+        return eval(s:jxaexecutable(s:library))
+    else
+        echom "search script: Cannot find JXA executable at " . s:library
+    endif
+endif
 
 " JavaScript for Automation helpers (Mac OS X)
 
@@ -49,21 +66,9 @@ let s:files = {
 \ }
 
 function! thrasher#itunes#init()
-    let s:cache = eval(ReadVariable(s:files.Cache))
+    let s:cache = s:restoreVariable(s:files.Cache)
     if empty(s:cache)
-        if g:thrasher_mode
-            let s:library = s:files.Music
-        else
-            let s:library = s:files.Library
-        endif
-        " let s:library = s:files.Tracks
-        if filereadable(s:library)
-            if g:thrasher_verbose | echom "search script: " . s:library | endif
-            echom "Thrasher: collecting iTunes Library takes a while"
-            let s:cache = eval(s:jxaexecutable(s:library))
-        else
-            echom "search script: Cannot find JXA executable at " . s:library
-        endif
+        let s:cache = s:getLibrary(g:thrasher_mode)
     endif
 endfunction
 
@@ -75,9 +80,8 @@ endfunction
 
 function! thrasher#itunes#search(query, mode)
     if empty(a:query) | return s:cache | endif
-
+    
     let prop = (a:mode ==# "track") ? "name" : a:mode
-
     if prop ==# "artist" || prop ==# "collection" || prop ==# "name"
         let filtfn = printf("match(v:val['" . prop . "'], '%s') >= 0", a:query)
     else
@@ -96,22 +100,6 @@ function! thrasher#itunes#play(query)
         return s:jxa("function run(argv) { let app = Application('iTunes'); let pl = app.playlists.byName('" . a:query["collection"] . "'); let tr = pl.tracks.byName('" . a:query["name"] . "'); pl.play(); app.stop(); tr.play();}")
     endif
 endfunction
-
-        " " if has_key(a:query, "obj")
-        " " return s:jxa("function run(argv) { var app = Application('iTunes'); var lib = app.playlists.byName('Library'); app.stop(); return app.play(lib.tracks.byId(" . a:query["obj"]["id"] . ")); }")
-        " " Play Apple Music playlist by name
-        " " return s:jxa("function run(argv) { var app = Application('iTunes'); var lib = app.playlists.byName('Library'); app.stop(); let pl= app.sources['Library'].subscriptionPlaylists['" . a:query["collection"] . "']; pl.play()}")
-        
-        "   " if g:thrasher_mode
-        "     " Play playlist at track - by name
-        "     return s:jxa("function run(argv) { let app = Application('iTunes'); let pl = app.playlists.byName('" . a:query["collection"] . "'); let tr = pl.tracks.byName('" . a:query["name"] . "'); pl.play(); app.stop(); tr.play();}")
-        " else
-        "     " Play single track - by id and fall back to queue
-        "     return s:jxa("function run(argv) { let app = Application('iTunes'); let lib = app.playlists.byName('Library'); app.stop(); app.play(lib.tracks.byId(" . a:query["id"] . ")); }")
-        " endif
-    " endif
-    " " As a fallback play from entire Library [0] = Music
-    " return s:jxa("function run(argv) { let app = Application('iTunes'); let pl = app.sources['Library'].userPlaylists[0]; return pl.play(); }")
 
 function! thrasher#itunes#pause()
     let error = s:jxa("function run(argv) { var app = Application('iTunes'); return app.pause(); }")
@@ -137,10 +125,12 @@ function! thrasher#itunes#status()
     return eval(s:jxa("function run(argv) { var app = Application('iTunes'); var playerState = app.playerState(); try {var track = app.currentTrack(); return JSON.stringify({state: playerState, track: {name: track.name(), collection: track.album(), artist: track.artist()}});} catch(e) { return JSON.stringify({state: playerState, track: {name: '', collection: '', artist: ''} })}} "))
 endfunction
 
+function! thrasher#itunes#notify(message)
+    let error = s:jxa("function run(argv) { let app = Application.currentApplication(); let info = '"  . a:message . "'; app.includeStandardAdditions = true; app.displayNotification(info, { withTitle: 'Thrasher' }); }")
+endfunction
+
 function! thrasher#itunes#version()
     return eval(s:jxa("function run(argv) { var app = Application('iTunes'); return app.version(); }"))
 endfunction
 
-function! thrasher#itunes#notify(message)
-    let error = s:jxa("function run(argv) { let app = Application.currentApplication(); let info = '"  . a:message . "'; app.includeStandardAdditions = true; app.displayNotification(info, { withTitle: 'Thrasher' }); }")
-endfunction
+
