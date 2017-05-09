@@ -57,9 +57,9 @@ endfunction
 function! thrasher#itunes#exit()
     " truncate - on MacOS brew gnutils with prefix TODO - make more universal
     if filereadable(s:library)
-        system("/usr/local/bin/gtruncate -s 0 " . s:files.Cache)
+        call system("echo -n > " . s:files.Cache)
     else
-         system("touch " . s:files.Cache)
+         call system("touch " . s:files.Cache)
     endif
     redir! s:files.Cache | echo s:cache | redir end
     if g:thrasher_verbose | echom "s:cache saved to file " . s:files.Cache | endif
