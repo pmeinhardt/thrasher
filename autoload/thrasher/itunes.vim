@@ -56,6 +56,7 @@ endfunction
 
 function! thrasher#itunes#exit()
     redir! s:files.Cache | echo s:cache | redir end
+    if g:thrasher_verbose | echom "s:cache saved to file " . s:files.Cache | endif
     let s:cache = []
 endfunction
 

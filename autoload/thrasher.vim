@@ -142,8 +142,9 @@ function! thrasher#exit()
     if s:active && bufnr("%") ==# s:bufnr && bufname("%") ==# s:bufname
         let s:cursorpos = getpos(".")
         noautocmd call s:close()
+        noautocmd call s:dispatch(s:state.player, "exit")
         let s:active = 0
-        return 1
+    return 1
     endif
 
     return 0
