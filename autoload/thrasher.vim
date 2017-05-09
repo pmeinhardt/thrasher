@@ -121,7 +121,7 @@ function! thrasher#status()
         return s:dispatch(s:state.player, "notify", status.state . ": " . info)
     else
         return strpart(status.state . ": " . info, 0, 45)
-    endif
+    end
 endfunction
 
 " Interface
@@ -334,7 +334,7 @@ function! s:accept()
     if empty(s:state.list) | return | endif
     let index = line(".") - 1
     " call thrasher#play({"obj": s:state.list[index]})
-    echom s:state.list[index]['collection']
+    if g:thrasher_verbose | "Playing from collection: ". echom s:state.list[index]['collection'] | endif
     call thrasher#play(s:state.list[index])
 endfunction
 

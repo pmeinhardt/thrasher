@@ -37,29 +37,23 @@ let s:files = {
 
 function! thrasher#itunes#init()
     if empty(s:cache)
-
         if g:thrasher_mode
-            " Apple Music playlists [collection = Apple Music playlist]
-            " (subscriptionPlaylist)
             let s:library = s:files.Music
         else
-            " Library playlists [collection = Library playlist]
-            " (userPlaylist)
             let s:library = s:files.Library
         endif
         " let s:library = s:files.Tracks
-        " Not active -  Library tracks [colection = album]
-
         if filereadable(s:library)
-            if g:thrasher_verbose | echom s:library | endif
+            if g:thrasher_verbose | "search script: " . echom s:library | endif
             let s:cache = eval(s:jxaexecutable(s:library))
         else
-            echom "Thrasher: Cannot find JXA executable " . s:library
+            echom "search script: Cannot find JXA executable at " . s:library
         endif
     endif
 endfunction
 
 function! thrasher#itunes#exit()
+    redir! /tmp/library.txt | echo s:cache | redir end
     let s:cache = []
 endfunction
 
@@ -82,6 +76,7 @@ endfunction
 
 function! thrasher#itunes#play(query)
     if !empty(a:query)
+        if g:thrasher_verbose | echom  "PLAY " . a:query["name"] . " / " .  a:query["collection"] | endif
         return s:jxa("function run(argv) { let app = Application('iTunes'); let pl = app.playlists.byName('" . a:query["collection"] . "'); let tr = pl.tracks.byName('" . a:query["name"] . "'); pl.play(); app.stop(); tr.play();}")
     endif
 endfunction
@@ -91,8 +86,7 @@ endfunction
         " " Play Apple Music playlist by name
         " " return s:jxa("function run(argv) { var app = Application('iTunes'); var lib = app.playlists.byName('Library'); app.stop(); let pl= app.sources['Library'].subscriptionPlaylists['" . a:query["collection"] . "']; pl.play()}")
         
-        " if g:thrasher_verbose | echom  a:query["name"] . " / " .  a:query["collection"] | endif
-        " if g:thrasher_mode
+        "   " if g:thrasher_mode
         "     " Play playlist at track - by name
         "     return s:jxa("function run(argv) { let app = Application('iTunes'); let pl = app.playlists.byName('" . a:query["collection"] . "'); let tr = pl.tracks.byName('" . a:query["name"] . "'); pl.play(); app.stop(); tr.play();}")
         " else
@@ -132,8 +126,5 @@ function! thrasher#itunes#version()
 endfunction
 
 function! thrasher#itunes#notify(message)
-    if g:thrasher_verbose
-        echom a:message
-    endif
     let error = s:jxa("function run(argv) { let app = Application.currentApplication(); let info = '"  . a:message . "'; app.includeStandardAdditions = true; app.displayNotification(info, { withTitle: 'Thrasher' }); }")
 endfunction

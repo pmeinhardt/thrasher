@@ -1,5 +1,7 @@
 # JXA snippets and notes
 
+_scripts here are quick and dirty experiments._ Compiled versions in /autoload/thrasher are used.
+
 Javascript for Automation 
 
 _Update: As of macOS Sierra, the JXA JavaScriptCore is that from Safari ~10.1, which supports not only 100% of ECMAScript 6, according to Kangax's table, but even parts of ES2017 (‘ES7’), like async functions! Go wild, if your scripts will only ever run on Sierra and above_
