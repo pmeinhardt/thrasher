@@ -30,6 +30,7 @@ endfunction
 function! s:getLibrary(mode, online)
 " TODO - add filtering On-line, Off-line Combine Music and Library (and
 " Tracks?)
+"   let s:path = s:files.Tracks[_Offline]
     if a:mode
         if a:online
             let s:path = s:files.Music
@@ -43,9 +44,8 @@ function! s:getLibrary(mode, online)
             let s:path = s:files.Library_Offline
         endif
     endif
-    " let s:library = s:files.Tracks[_Offline]
+    
     if filereadable(s:path)
-        " return eval(s:jxaexecutable(s:path))
         call s:refreshLibrary(s:path)
         if g:thrasher_verbose | echom "Collecting iTunes Library can take a while" | endif
     else
@@ -72,6 +72,30 @@ function! s:refreshLibrary(path)
         let cmd = ['osascript', '-l', 'JavaScript',  a:path]
         if g:thrasher_verbose | echom string(cmd) | endif
         let job = job_start(cmd, {'close_cb': 'RefreshLibraryJobEnd', 'out_io': 'file', 'out_name': g:thrasher_refreshLibrary})
+    endif
+endfunction
+
+function! s:outHandler(job, message)
+    exec 'silent! cb! ' . g:makeBufNum  
+endfunction
+
+function! s:exitHandler(job, status)
+    echom "NowPlaying finished"
+endfunction
+
+function! s:nowPlaying()
+    if exists('g:thrasher_refreshLibrary')
+        if g:thrasher_nowplaying | echom 'NowPlaying task is already running ' | endif
+    else
+        "create/wipe the buffer
+        let currentBuf = bufnr('%')
+        let g:makeBufNum = bufnr('nowplaying_buffer', 1)
+        exec g:makeBufNum . 'bufdo %d'
+        exec 'b ' . currentBuf
+
+        "execute the job
+        let cmd =  ['/Users/rrj/.virtualenvs/Music/bin/python', s:files.NowPlaying ]
+        let job = job_start(cmd, {'out_io': 'buffer', 'out_name': 'nowplaying_buffer', 'out_cb': 'OutHandler', 'exit_cb': 'ExitHandler'})
     endif
 endfunction
 
@@ -105,7 +129,8 @@ let s:files = {
 \ 'Library':            s:dir . '/iTunes_Library.scpt',
 \ 'Tracks_Offline':     s:dir . '/iTunes_Tracks_Offline.scpt',
 \ 'Tracks':             s:dir . '/iTunes_Tracks.scpt',
-\ 'Cache':              s:dir . '/Library_Cache.txt'
+\ 'Cache':              s:dir . '/Library_Cache.txt',
+\ 'NowPlaying':         s:dir . 'itunes_notifications.py'
 \ }
 
 function! thrasher#itunes#init()
@@ -172,6 +197,10 @@ endfunction
 
 function! thrasher#itunes#notify(message)
     let error = s:jxa("function run(argv) { let app = Application.currentApplication(); let info = '"  . a:message . "'; app.includeStandardAdditions = true; app.displayNotification(info, { withTitle: 'Thrasher' }); }")
+endfunction
+
+function! thrasher#itunes#nowplaying()
+    call s:nowPlaying()
 endfunction
 
 function! thrasher#itunes#refresh()
