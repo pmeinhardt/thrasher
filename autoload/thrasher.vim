@@ -4,13 +4,27 @@
 if exists("g:autoloaded_thrasher")
     finish
 endif
+let g:autoloaded_thrasher = 1
 
 if !executable('osascript')
     echom ('Thrasher: Cannot find osascript')
     finish
 endif
 
-let g:autoloaded_thrasher = 1
+if !exists("g:thrasher_online")
+    " Browse all tracks (also not downloaded)
+    " Not First World problem but I have been developing this code in Sumatra
+    " with spotty internet at best and occasional power cuts
+    let g:thrasher_online = 1
+endif
+
+if !exists(" g:thrasher_mode")
+    " 0 - search iTunes Library by playlists (userPlaylists in Apple parlance)
+    " 1 - search Apple Music playlists (subscriptionPlaylists)
+    " there is potential for mode 2 - not coded into logic at the moment
+    " - search tracks by albums (in iTunes Library - this is how original Thrasher worked
+    let g:thrasher_mode = 0
+endif
 
 " Configuration
 
@@ -127,10 +141,21 @@ function! thrasher#refresh()
 endfunction
 
 function! thrasher#librarytoggle()
+" Toggle Apple Music/iTunes Library and refresh List Cache
     if g:thrasher_mode
         let g:thrasher_mode = 0
     else
         let g:thrasher_mode = 1
+    endif
+    return s:dispatch(s:state.player, "refresh")
+endfunction
+
+function! thrasher#onlinetoggle()
+" Toggle On-line and refresh List Cache
+    if g:thrasher_online
+        let g:thrasher_mode = 0
+    else
+        let g:thrasher_online = 1
     endif
     return s:dispatch(s:state.player, "refresh")
 endfunction

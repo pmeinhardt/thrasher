@@ -17,6 +17,7 @@ command! -nargs=0 ThrasherPrev      call thrasher#prev()
 
 command! -nargs=0 ThrasherStatus    call thrasher#status()
 command! -nargs=0 ThrasherLibrary   call thrasher#librarytoggle()
+command! -nargs=0 ThrasherOnline    call thrasher#onlinetoggle()
 command! -nargs=0 ThrasherRefresh   call thrasher#refresh()
 
 " command! -nargs=* ThrasherQueue    call thrasher#queue()

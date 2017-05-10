@@ -27,15 +27,23 @@ function! s:restoreVariable(file)
     return result
 endfunction
 
-function! s:getLibrary(mode)
+function! s:getLibrary(mode, online)
 " TODO - add filtering On-line, Off-line Combine Music and Library (and
 " Tracks?)
     if a:mode
-        let s:path = s:files.Music
+        if a:online
+            let s:path = s:files.Music
+        else
+            let s:path = s:files.Music_Offline
+        endif
     else
-        let s:path = s:files.Library
+        if a:online
+            let s:path = s:files.Library
+        else
+            let s:path = s:files.Library_Offline
+        endif
     endif
-    " let s:library = s:files.Tracks
+    " let s:library = s:files.Tracks[_Offline]
     if filereadable(s:path)
         " return eval(s:jxaexecutable(s:path))
         call s:refreshLibrary(s:path)
@@ -50,7 +58,7 @@ endfunction
 function! RefreshLibraryJobEnd(channel)
     let s:cache = s:restoreVariable(g:thrasher_refreshLibrary)
     " call s:saveVariable(s:cache, s:files.Cache)
-    if g:thrasher_verbose | echom 'iTunes Library refreshed' | endif
+    echom 'iTunes Library refreshed
     unlet g:thrasher_refreshLibrary
 endfunction
 
@@ -90,16 +98,19 @@ let s:cache = []
 " Folder in which scripts resides: (not safe for symlinks)
 let s:dir = expand('<sfile>:p:h')
 let s:files = {
-\ 'Music':      s:dir . '/iTunes_Music.scpt',
-\ 'Library':    s:dir . '/iTunes_Library.scpt',
-\ 'Tracks':     s:dir . '/iTunes_Tracks.scpt',
-\ 'Cache':      s:dir . '/Library_Cache.txt'
+\ 'Music_Offline':      s:dir . '/iTunes_Music_Offline.scpt',
+\ 'Music':              s:dir . '/iTunes_Music.scpt',
+\ 'Library_Offline':    s:dir . '/iTunes_Library_Offline.scpt',
+\ 'Library':            s:dir . '/iTunes_Library.scpt',
+\ 'Tracks_Offline':     s:dir . '/iTunes_Tracks_Offline.scpt',
+\ 'Tracks':             s:dir . '/iTunes_Tracks.scpt',
+\ 'Cache':              s:dir . '/Library_Cache.txt'
 \ }
 
 function! thrasher#itunes#init()
     if filereadable(s:files.Cache) | let s:cache = s:restoreVariable(s:files.Cache) | endif
     " if empty(s:cache) | let s:cache = s:getLibrary(g:thrasher_mode) | endif
-    call s:getLibrary(g:thrasher_mode)
+    call s:getLibrary(g:thrasher_mode, g:thraser_online)
 endfunction
 
 function! thrasher#itunes#exit()
@@ -126,7 +137,7 @@ endfunction
 
 function! thrasher#itunes#play(query)
     if !empty(a:query)
-        if g:thrasher_verbose | echom  "PLAY " . a:query["name"] . " / " .  a:query["collection"] | endif
+        if g:thrasher_verbose | echom  "PLAY 🎶 " . a:query["name"] . " : " .  a:query["collection"] | endif
         return s:jxa("function run(argv) { let app = Application('iTunes'); let pl = app.playlists.byName('" . a:query["collection"] . "'); let tr = pl.tracks.byName('" . a:query["name"] . "'); pl.play(); app.stop(); tr.play();}")
     endif
 endfunction
@@ -160,7 +171,7 @@ function! thrasher#itunes#notify(message)
 endfunction
 
 function! thrasher#itunes#refresh()
-    call s:getLibrary(g:thrasher_mode)
+    call s:getLibrary(g:thrasher_mode, g:thrasher_online)
 endfunction
 
 function! thrasher#itunes#version()
