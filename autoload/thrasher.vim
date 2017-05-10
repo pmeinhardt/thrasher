@@ -413,9 +413,9 @@ endfunction
 
 function! s:renderstatus(state)
     let l:online = " [Off-line]"
-    if g:thrasher_online | l:online = " [On-line]" | endif
+    if g:thrasher_online | let l:online = " [On-line]" | endif
     let l:online = " [iTunes Library]"
-    if g:thrasher_mode | l:library = " [Apple Music]" | endif
+    if g:thrasher_mode | let l:library = " [Apple Music]" | endif
     let base = "thrasher [ " . join(s:modes, " ") . " ] " . len(a:state.list)  . l:library . l:online
     let line = substitute(base, a:state.mode, "<" . a:state.mode . ">", "")
     let &l:statusline = line
