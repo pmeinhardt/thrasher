@@ -57,6 +57,7 @@ endfunction
 
 function! RefreshLibraryJobEnd(channel)
     let s:cache = s:restoreVariable(g:thrasher_refreshLibrary)
+    call thrasher#refreshList()  " call thrasher#itunes#init({}, s:state.mode)
     call s:saveVariable(s:cache, s:files.Cache)
     echom "iTunes Library refreshed"
     unlet g:thrasher_refreshLibrary
@@ -67,7 +68,7 @@ function! s:refreshLibrary(path)
         if g:thrasher_verbose | echom 'refreshLibrary task is already running in background' | endif
     else
         if g:thrasher_verbose | echom 'Refreshing iTunes Library in background' | endif
-        let g:thrasher_refreshLibrary = s:files.Cache 
+        let g:thrasher_refreshLibrary = tempname()
         let cmd = ['osascript', '-l', 'JavaScript',  a:path]
         if g:thrasher_verbose | echom string(cmd) | endif
         let job = job_start(cmd, {'close_cb': 'RefreshLibraryJobEnd', 'out_io': 'file', 'out_name': g:thrasher_refreshLibrary})
@@ -110,8 +111,8 @@ let s:files = {
 function! thrasher#itunes#init()
     " restore Music Library form disk file
     if filereadable(s:files.Cache) | let s:cache = s:restoreVariable(s:files.Cache) | endif
-    " this is blocking -- if empty(s:cache) | let s:cache = s:getLibrary(g:thrasher_mode) | endif
-    " and re-fill s:cache in the background
+    " this is blocking version --> if empty(s:cache) | let s:cache = s:getLibrary(g:thrasher_mode) | endif
+    " re-fill s:cache in the background
     call s:getLibrary(g:thrasher_mode, g:thrasher_online)
 endfunction
 

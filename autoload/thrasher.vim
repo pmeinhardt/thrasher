@@ -126,18 +126,30 @@ endfunction
 
 function! thrasher#status()
     let status = s:dispatch(s:state.player, "status")
-    let track = status.track
-    let info = join([track.name, track.collection, track.artist], ", ")
-    if g:thrasher_verbose | echom status.state . ": " . info | endif
-    if g:thrasher_notify
-        return s:dispatch(s:state.player, "notify", status.state . ": " . info)
-    else
+    " let track = status.track
+    " let info = join([track.name, track.collection, track.artist], ", ")
+    " if g:thrasher_verbose | echom status.state . ": " . info | endif
+    " if g:thrasher_notify
+    "     return s:dispatch(s:state.player, "notify", status.state . ": " . info)
+    " else
+    "     return strpart(status.state . ": " . info, 0, 45)
+    " endif
+    if status.state == "playing"
+        let track = status.track
+        let info = join([track.name, track.collection, track.artist], ", ")
         return strpart(status.state . ": " . info, 0, 45)
+    else
+         return status.state
     endif
 endfunction
 
 function! thrasher#refresh()
     return s:dispatch(s:state.player, "refresh")
+endfunction
+
+function! thrasher#refreshList()
+    " this (after async Library refresh) will re-fill s:state.list
+    let s:state.list = thrasher#search({}, s:state.mode)
 endfunction
 
 function! thrasher#librarytoggle()
@@ -153,7 +165,7 @@ endfunction
 function! thrasher#onlinetoggle()
 " Toggle On-line and refresh List Cache
     if g:thrasher_online
-        let g:thrasher_mode = 0
+        let g:thrasher_online = 0
     else
         let g:thrasher_online = 1
     endif
@@ -167,7 +179,7 @@ function! thrasher#run()
     let s:active = 1
 
     call s:dispatch(s:state.player, "init")
-    let s:state.list = thrasher#search("", s:state.mode)
+    let s:state.list = thrasher#search({}, s:state.mode)
 
     noautocmd call s:open()
     call s:render(s:state)
@@ -412,13 +424,17 @@ endfunction
 " Status-line
 
 function! s:renderstatus(state)
-    let l:online = " [Off-line]"
-    if g:thrasher_online | let l:online = " [On-line]" | endif
-    let l:online = " [iTunes Library]"
-    if g:thrasher_mode | let l:library = " [Apple Music]" | endif
-    let base = "thrasher [ " . join(s:modes, " ") . " ] " . len(a:state.list)  . l:library . l:online
-    let line = substitute(base, a:state.mode, "<" . a:state.mode . ">", "")
-    let &l:statusline = line
+
+    let l:library = " [Apple Music]"
+    if !g:thrasher_mode | let l:library = " [iTunes Library]" | endif
+    let l:online = " [On-line] "
+    if !g:thrasher_online | let l:online = " [Off-line] " | endif
+    let l:status = thrasher#status()
+
+    let l:base = "thrasher [ " . join(s:modes, " ") . " ] " . len(a:state.list)  . l:library . l:online . l:status
+    let l:line = substitute(l:base, a:state.mode, "<" . a:state.mode . ">", "")
+
+    let &l:statusline = l:line
 endfunction
 
 " Prompt
@@ -434,9 +450,9 @@ function! s:renderprompt(state)
     endif
 
     if has("multi_byte")
-        let prompt = a:state.focus ? "🎧⚡️🎸" : "🎷🎹🎻"
+        let prompt = a:state.focus ? "⚡️🎸" : "🎧"
     else
-        let prompt = a:state.focus ? ">>> " : "--- "
+        let prompt = a:state.focus ? ">>>" : "---"
     endif
 
     execute "echoh " . hlbase . " | echon '" . prompt . "'" .
