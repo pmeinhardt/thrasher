@@ -108,12 +108,15 @@ let s:files = {
 \ }
 
 function! thrasher#itunes#init()
+    " restore Music Library form disk file
     if filereadable(s:files.Cache) | let s:cache = s:restoreVariable(s:files.Cache) | endif
-    " if empty(s:cache) | let s:cache = s:getLibrary(g:thrasher_mode) | endif
-    call s:getLibrary(g:thrasher_mode, g:thraser_online)
+    " this is blocking -- if empty(s:cache) | let s:cache = s:getLibrary(g:thrasher_mode) | endif
+    " and re-fill s:cache in the background
+    call s:getLibrary(g:thrasher_mode, g:thrasher_online)
 endfunction
 
 function! thrasher#itunes#exit()
+    " save Music Library to disk
     call s:saveVariable(s:cache, s:files.Cache)
     if g:thrasher_verbose | echom "iTunes Library saved to file " . s:files.Cache | endif
     let s:cache = []
