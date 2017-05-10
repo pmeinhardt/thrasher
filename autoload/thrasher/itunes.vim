@@ -57,7 +57,7 @@ endfunction
 
 function! RefreshLibraryJobEnd(channel)
     let s:cache = s:restoreVariable(g:thrasher_refreshLibrary)
-    " call s:saveVariable(s:cache, s:files.Cache)
+    call s:saveVariable(s:cache, s:files.Cache)
     echom "iTunes Library refreshed"
     unlet g:thrasher_refreshLibrary
 endfunction

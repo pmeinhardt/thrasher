@@ -181,7 +181,7 @@ function! thrasher#exit()
     if s:active && bufnr("%") ==# s:bufnr && bufname("%") ==# s:bufname
         let s:cursorpos = getpos(".")
         noautocmd call s:close()
-        noautocmd call s:dispatch(s:state.player, "exit")
+        " noautocmd call s:dispatch(s:state.player, "exit")
         let s:active = 0
     return 1
     endif
@@ -412,7 +412,11 @@ endfunction
 " Status-line
 
 function! s:renderstatus(state)
-    let base = "thrasher [ " . join(s:modes, " ") . " ] " . len(a:state.list)
+    let l:online = " [Off-line]"
+    if g:thrasher_online | l:online = " [On-line]" | endif
+    let l:online = " [iTunes Library]"
+    if g:thrasher_mode | l:library = " [Apple Music]" | endif
+    let base = "thrasher [ " . join(s:modes, " ") . " ] " . len(a:state.list)  . l:library . l:online
     let line = substitute(base, a:state.mode, "<" . a:state.mode . ">", "")
     let &l:statusline = line
 endfunction
