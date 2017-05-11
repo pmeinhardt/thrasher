@@ -309,7 +309,7 @@ function! s:focus()
     nnoremap <buffer> <silent> <del>    :<c-u>call <sid>delchar()<cr>
     nnoremap <buffer> <silent> <c-w>    :<c-u>call <sid>delword()<cr>
     nnoremap <buffer> <silent> <c-u>    :<c-u>call <sid>delline()<cr>
-
+    "
     " accept input (ascii range 32 through 126)
     let mapcmd = 'nnoremap <buffer> <silent> <char-%d> ' .
                 \ ':<c-u>call <sid>%s("%s")<cr>'
@@ -346,7 +346,7 @@ function! s:unfocus()
     nunmap <buffer> <del>
     nunmap <buffer> <c-w>
     nunmap <buffer> <c-u>
-
+    " 
     " disable prompt input
     let unmapcmd = 'nunmap <buffer> <silent> <char-%d>'
 
@@ -415,7 +415,7 @@ function! s:renderbuffer(state)
         if !exists("g:thrasher_refreshLibrary") 
             call setline(1, "NO RESULTS")
         else
-            call setline(1, "Getting playlists and tracks from iTunes Library for the first time may take w while.")
+            call setline(1, "Getting playlists and tracks from iTunes Library for the first time may take a while.")
         endif
     else
         setlocal cursorline
@@ -458,7 +458,7 @@ function! s:renderprompt(state)
     endif
 
     if has("multi_byte")
-        let prompt = a:state.focus ? "⚡️🎸" : "___"
+        let prompt = a:state.focus ? "⚡️>>" : "🎸__"
     else
         let prompt = a:state.focus ? ">>>" : "---"
     endif
