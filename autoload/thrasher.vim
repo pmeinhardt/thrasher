@@ -72,7 +72,7 @@ let s:regglobals = {}
 
 let s:state = {
             \   "player": "itunes",
-            \   "input": [" ", "", ""],
+            \   "input": ["", "", ""],
             \   "focus": 1,
             \   "mode": s:modes[0],
             \   "list": []
@@ -149,7 +149,10 @@ endfunction
 
 function! thrasher#refreshList()
     " this (after async Library refresh) will re-fill s:state.list
-    let s:state.list = thrasher#search({}, s:state.mode)
+    " let s:state.list = thrasher#search({}, s:state.mode)
+    if s:open
+        call s:keypress('')
+    endif
 endfunction
 
 function! thrasher#librarytoggle()
@@ -172,7 +175,7 @@ function! thrasher#onlinetoggle()
     return s:dispatch(s:state.player, "refresh")
 endfunction
 
-" Interface
+" Interface/
 
 function! thrasher#run()
     if s:active | return 0 | endif
@@ -183,7 +186,6 @@ function! thrasher#run()
 
     noautocmd call s:open()
     call s:render(s:state)
-
     call setpos(".", s:cursorpos)
 
     return 1
@@ -193,7 +195,7 @@ function! thrasher#exit()
     if s:active && bufnr("%") ==# s:bufnr && bufname("%") ==# s:bufname
         let s:cursorpos = getpos(".")
         noautocmd call s:close()
-        " noautocmd call s:dispatch(s:state.player, "exit")
+        " nautocmd call s:dispatch(s:state.player, "exit")
         let s:active = 0
     return 1
     endif
@@ -256,6 +258,7 @@ function! s:open()
 
     " set focus
     call s:focus()
+    let s:open = 1
 endfunction
 
 function! s:close()
@@ -273,6 +276,7 @@ function! s:close()
 
     " clear echo line
     echo
+    let s:open = 0
 endfunction
 
 function! s:focus()
@@ -408,7 +412,11 @@ function! s:renderbuffer(state)
 
     if empty(tracks)
         setlocal nocursorline
-        call setline(1, "NO RESULTS")
+        if !exists("g:thrasher_refreshLibrary") 
+            call setline(1, "NO RESULTS")
+        else
+            call setline(1, "Getting playlists and tracks from iTunes Library for the first time may take w while.")
+        endif
     else
         setlocal cursorline
         let i = 1
@@ -450,7 +458,7 @@ function! s:renderprompt(state)
     endif
 
     if has("multi_byte")
-        let prompt = a:state.focus ? "⚡️🎸" : "🎧"
+        let prompt = a:state.focus ? "⚡️🎸" : "___"
     else
         let prompt = a:state.focus ? ">>>" : "---"
     endif
