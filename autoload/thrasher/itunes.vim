@@ -28,28 +28,19 @@ function! s:restoreVariable(file)
 endfunction
 
 function! s:getLibrary(mode, online)
-" TODO - add filtering On-line, Off-line Combine Music and Library (and
-" Tracks?)
-"   let s:path = s:files.Tracks[_Offline]
+    let l:jxa_path = s:files.Library_2
     if a:mode
         if a:online
-            let s:path = s:files.Music
+            call s:refreshLibrary(l:jxa_path, 'Music', 'Online')
         else
-            let s:path = s:files.Music_Offline
+            call s:refreshLibrary(l:jxa_path, 'Music', 'Offline' )
         endif
     else
         if a:online
-            let s:path = s:files.Library
+            call s:refreshLibrary(l:jxa_path, 'Library', 'Online')
         else
-            let s:path = s:files.Library_Offline
+            call s:refreshLibrary(l:jxa_path, 'Library', 'Offline')
         endif
-    endif
-    
-    if filereadable(s:path)
-        call s:refreshLibrary(s:path)
-        if g:thrasher_verbose | echom "Collecting iTunes Library can take a while" | endif
-    else
-        echoerr "search script: Cannot find JXA executable at " . s:path
     endif
 endfunction
 
@@ -63,39 +54,15 @@ function! RefreshLibraryJobEnd(channel)
     unlet g:thrasher_refreshLibrary
 endfunction
 
-function! s:refreshLibrary(path)
+function! s:refreshLibrary(jxa, library, mode)
     if exists('g:thrasher_refreshLibrary')
         if g:thrasher_verbose | echom 'refreshLibrary task is already running in background' | endif
     else
         if g:thrasher_verbose | echom 'Refreshing iTunes Library in background' | endif
         let g:thrasher_refreshLibrary = tempname()
-        let cmd = ['osascript', '-l', 'JavaScript',  a:path]
+        let cmd = ['osascript', '-l', 'JavaScript',  a:path, a:library, a:mode]
         if g:thrasher_verbose | echom string(cmd) | endif
         let job = job_start(cmd, {'close_cb': 'RefreshLibraryJobEnd', 'out_io': 'file', 'out_name': g:thrasher_refreshLibrary})
-    endif
-endfunction
-
-function! s:outHandler(job, message)
-    exec 'silent! cb! ' . g:makeBufNum  
-endfunction
-
-function! s:exitHandler(job, status)
-    echom "NowPlaying finished"
-endfunction
-
-function! s:nowPlaying()
-    if exists('g:thrasher_refreshLibrary')
-        if g:thrasher_nowplaying | echom 'NowPlaying task is already running ' | endif
-    else
-        "create/wipe the buffer
-        let currentBuf = bufnr('%')
-        let g:makeBufNum = bufnr('nowplaying_buffer', 1)
-        exec g:makeBufNum . 'bufdo %d'
-        exec 'b ' . currentBuf
-
-        "execute the job
-        let cmd =  ['/Users/rrj/.virtualenvs/Music/bin/python', s:files.NowPlaying ]
-        let job = job_start(cmd, {'out_io': 'buffer', 'out_name': 'nowplaying_buffer', 'out_cb': 'OutHandler', 'exit_cb': 'ExitHandler'})
     endif
 endfunction
 
@@ -106,8 +73,7 @@ function! s:jxa(code)
     return substitute(output, "\n$", "", "")
 endfunction
 
-" Calling external JXA scripts (compiled) seems like overkill
-" but wait.. We could use them in async. 
+" Calling external JXA scripts (compiled)
 function! s:jxaexecutable(path)
     let output = system('osascript -l JavaScript ' . a:path )
     return substitute(output, "\n$", "", "")
@@ -123,20 +89,20 @@ let s:cache = []
 " Folder in which scripts resides: (not safe for symlinks)
 let s:dir = expand('<sfile>:p:h')
 let s:files = {
+\ 'Library_2':          s:dir . '/iTunes_Library2.scpt',
 \ 'Music_Offline':      s:dir . '/iTunes_Music_Offline.scpt',
 \ 'Music':              s:dir . '/iTunes_Music.scpt',
 \ 'Library_Offline':    s:dir . '/iTunes_Library_Offline.scpt',
 \ 'Library':            s:dir . '/iTunes_Library.scpt',
 \ 'Tracks_Offline':     s:dir . '/iTunes_Tracks_Offline.scpt',
 \ 'Tracks':             s:dir . '/iTunes_Tracks.scpt',
-\ 'Cache':              s:dir . '/Library_Cache.txt',
-\ 'NowPlaying':         s:dir . 'itunes_notifications.py'
+\ 'Cache':              s:dir . '/Library_Cache.txt'
 \ }
 
 function! thrasher#itunes#init()
     " restore Music Library form disk file
     if filereadable(s:files.Cache) | let s:cache = s:restoreVariable(s:files.Cache) | endif
-    " this is blocking version --> if empty(s:cache) | let s:cache = s:getLibrary(g:thrasher_mode) | endif
+    " This is blocking version --> if empty(s:cache) | let s:cache = s:getLibrary(g:thrasher_mode) | endif
     " re-fill s:cache in the background
     call s:getLibrary(g:thrasher_mode, g:thrasher_online)
 endfunction
@@ -197,10 +163,6 @@ endfunction
 
 function! thrasher#itunes#notify(message)
     let error = s:jxa("function run(argv) { let app = Application.currentApplication(); let info = '"  . a:message . "'; app.includeStandardAdditions = true; app.displayNotification(info, { withTitle: 'Thrasher' }); }")
-endfunction
-
-function! thrasher#itunes#nowplaying()
-    call s:nowPlaying()
 endfunction
 
 function! thrasher#itunes#refresh()
