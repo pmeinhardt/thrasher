@@ -60,7 +60,7 @@ function! s:refreshLibrary(jxa, library, mode)
     else
         if g:thrasher_verbose | echom 'Refreshing iTunes Library in background' | endif
         let g:thrasher_refreshLibrary = tempname()
-        let cmd = ['osascript', '-l', 'JavaScript',  a:path, a:library, a:mode]
+        let cmd = ['osascript', '-l', 'JavaScript',  a:jxa, a:library, a:mode]
         if g:thrasher_verbose | echom string(cmd) | endif
         let job = job_start(cmd, {'close_cb': 'RefreshLibraryJobEnd', 'out_io': 'file', 'out_name': g:thrasher_refreshLibrary})
     endif
