@@ -11,17 +11,18 @@ endif
 let g:loaded_thrasher_itunes = 1
 
 " Helper functions
+command! -nargs=1 Silent execute ':silent !'.<q-args> | execute ':redraw!'
+
 function! s:saveVariable(var, file)
-    if filewritable(a:file)
-        call writefile([string(a:var)], a:file)
-    endif
+    " if !filewritable(a:file) | Silent touch a:file | endif
+    call writefile([string(a:var)], a:file)
 endfunction
 
 function! s:restoreVariable(file)
     if filereadable(a:file)
         let recover = readfile(a:file)[0]
     else
-        echoerr string(a:files) . " not readable. Cannot restore variable!"
+        echoerr string(a:file) . " not readable. Cannot restore variable!"
     endif
     execute "let result = " . recover
     return result
@@ -29,6 +30,7 @@ endfunction
 
 function! s:getLibrary(mode, online)
     let l:jxa_path = s:files.Library_2
+    echom l:jxa_path
     if a:mode
         if a:online
             call s:refreshLibrary(l:jxa_path, 'Music', 'Online')
@@ -46,10 +48,13 @@ endfunction
 
 " Async helpers
 
-function! RefreshLibraryJobEnd(channel)
+function! RefreshLibrary_JobEnd(channel)
     let s:cache = s:restoreVariable(g:thrasher_refreshLibrary)
-    call thrasher#refreshList()  " call thrasher#itunes#init({}, s:state.mode)
-    call s:saveVariable(s:cache, s:files.Cache)
+    if !filewritable(s:files.Cache)
+        Silent touch s:files.Cache
+    endif
+    call s:saveVariable(s:cache,s:files.Cache)
+    call thrasher#refreshList()
     echom "iTunes Library refreshed"
     unlet g:thrasher_refreshLibrary
 endfunction
@@ -62,7 +67,8 @@ function! s:refreshLibrary(jxa, library, mode)
         let g:thrasher_refreshLibrary = tempname()
         let cmd = ['osascript', '-l', 'JavaScript',  a:jxa, a:library, a:mode]
         if g:thrasher_verbose | echom string(cmd) | endif
-        let job = job_start(cmd, {'close_cb': 'RefreshLibraryJobEnd', 'out_io': 'file', 'out_name': g:thrasher_refreshLibrary})
+        if g:thrasher_verbose | echom string(g:thrasher_refreshLibrary) | endif
+        let job = job_start(cmd, {'close_cb': 'RefreshLibrary_JobEnd', 'out_io': 'file', 'out_name': g:thrasher_refreshLibrary})
     endif
 endfunction
 
@@ -89,13 +95,7 @@ let s:cache = []
 " Folder in which scripts resides: (not safe for symlinks)
 let s:dir = expand('<sfile>:p:h')
 let s:files = {
-\ 'Library_2':          s:dir . '/iTunes_Library2.scpt',
-\ 'Music_Offline':      s:dir . '/iTunes_Music_Offline.scpt',
-\ 'Music':              s:dir . '/iTunes_Music.scpt',
-\ 'Library_Offline':    s:dir . '/iTunes_Library_Offline.scpt',
-\ 'Library':            s:dir . '/iTunes_Library.scpt',
-\ 'Tracks_Offline':     s:dir . '/iTunes_Tracks_Offline.scpt',
-\ 'Tracks':             s:dir . '/iTunes_Tracks.scpt',
+\ 'Library_2':          s:dir . '/iTunes_Library_2.scpt',
 \ 'Cache':              s:dir . '/Library_Cache.txt'
 \ }
 
