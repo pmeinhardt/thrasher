@@ -1,8 +1,9 @@
+scriptencoding utf-8
 " Location: autoload/thrasher/itunes.vim
 " Author:   Paul Meinhardt <https://github.com/pmeinhardt>
 
 " Make sure we're running VIM version 8 or higher.
-if exists("g:loaded_thrasher_itunes") || v:version < 800
+if exists('g:loaded_thrasher_itunes') || v:version < 800
     if v:version < 800
         echoerr 'Thrasher:refreshLibrary() is using async and requires VIM version 8 or higher'
     endif
@@ -20,17 +21,17 @@ endfunction
 
 function! s:restoreVariable(file)
     if filereadable(a:file)
-        let recover = readfile(a:file)[0]
+        let l:recover = readfile(a:file)[0]
     else
-        echoerr string(a:file) . " not readable. Cannot restore variable!"
+        echoerr string(a:file) . ' not readable. Cannot restore variable!'
     endif
-    execute "let result = " . recover
-    return result
+    execute 'let l:result = ' . l:recover
+    return l:result
 endfunction
 
 function! s:getLibrary(mode, online)
     let l:jxa_path = s:files.Library_2
-    echom l:jxa_path
+    if filereadable(s:files.Cache) | echom l:jxa_path | endif
     if a:mode
         if a:online
             call s:refreshLibrary(l:jxa_path, 'Music', 'Online')
@@ -55,7 +56,7 @@ function! RefreshLibrary_JobEnd(channel)
     endif
     call s:saveVariable(s:cache,s:files.Cache)
     call thrasher#refreshList()
-    echom "iTunes Library refreshed"
+    if filereadable(s:files.Cache) | echom 'iTunes Library refreshed' | endif
     unlet g:thrasher_refreshLibrary
 endfunction
 
@@ -65,24 +66,24 @@ function! s:refreshLibrary(jxa, library, mode)
     else
         if g:thrasher_verbose | echom 'Refreshing iTunes Library in background' | endif
         let g:thrasher_refreshLibrary = tempname()
-        let cmd = ['osascript', '-l', 'JavaScript',  a:jxa, a:library, a:mode]
-        if g:thrasher_verbose | echom string(cmd) | endif
+        let l:cmd = ['osascript', '-l', 'JavaScript',  a:jxa, a:library, a:mode]
+        if g:thrasher_verbose | echom string(l:cmd) | endif
         if g:thrasher_verbose | echom string(g:thrasher_refreshLibrary) | endif
-        let job = job_start(cmd, {'close_cb': 'RefreshLibrary_JobEnd', 'out_io': 'file', 'out_name': g:thrasher_refreshLibrary})
+        let l:job = job_start(l:cmd, {'close_cb': 'RefreshLibrary_JobEnd', 'out_io': 'file', 'out_name': g:thrasher_refreshLibrary})
     endif
 endfunction
 
 " JavaScript for Automation helpers (Mac OS X)
 
 function! s:jxa(code)
-    let output = system("echo \"" . a:code . "\" | osascript -l JavaScript")
-    return substitute(output, "\n$", "", "")
+    let l:output = system("echo \"" . a:code . "\" | osascript -l JavaScript")
+    return substitute(l:output, '\n$', '', '')
 endfunction
 
 " Calling external JXA scripts (compiled)
 function! s:jxaexecutable(path)
-    let output = system('osascript -l JavaScript ' . a:path )
-    return substitute(output, "\n$", "", "")
+    let l:output = system('osascript -l JavaScript ' . a:path )
+    return substitute(l:output, '\n$', '', '')
 endfunction
 
 function! s:jxaescape(str)
@@ -110,51 +111,51 @@ endfunction
 function! thrasher#itunes#exit()
     " save Music Library to disk
     call s:saveVariable(s:cache, s:files.Cache)
-    if g:thrasher_verbose | echom "iTunes Library saved to file " . s:files.Cache | endif
+    if g:thrasher_verbose | echom 'iTunes Library saved to file ' . s:files.Cache | endif
     let s:cache = []
 endfunction
 
 function! thrasher#itunes#search(query, mode)
     if empty(a:query) | return s:cache | endif
     
-    let prop = (a:mode ==# "track") ? "name" : a:mode
-    if prop ==# "artist" || prop ==# "collection" || prop ==# "name"
-        let filtfn = printf("match(v:val['" . prop . "'], '%s') >= 0", a:query)
+    let l:prop = (a:mode ==# 'track') ? 'name' : a:mode
+    if l:prop ==# 'artist' || l:prop ==# 'collection' || l:prop ==# 'name'
+        let l:filtfn = printf("match(v:val['" . l:prop . "'], '%s') >= 0", a:query)
     else
-        let filtfn = printf("match(values(v:val), '%s') >= 0", a:query)
+        let l:filtfn = printf("match(values(v:val), '%s') >= 0", a:query)
     endif
 
-    let tracks = copy(s:cache)
-    call filter(tracks, filtfn)
+    let l:tracks = copy(s:cache)
+    call filter(l:tracks, l:filtfn)
 
-    return tracks
+    return l:tracks
 endfunction
 
 function! thrasher#itunes#play(query)
     if !empty(a:query)
-        if g:thrasher_verbose | echom  "PLAY 🎶 " . a:query["name"] . " : " .  a:query["collection"] | endif
+        if g:thrasher_verbose | echom  'PLAY 🎶 ' . a:query['name'] . ' : ' .  a:query['collection'] | endif
         return s:jxa("function run(argv) { let app = Application('iTunes'); let pl = app.playlists.byName('" . a:query["collection"] . "'); let tr = pl.tracks.byName('" . a:query["name"] . "'); pl.play(); app.stop(); tr.play();}")
     endif
 endfunction
 
 function! thrasher#itunes#pause()
-    let error = s:jxa("function run(argv) { var app = Application('iTunes'); return app.pause(); }")
+    let l:error = s:jxa("function run(argv) { var app = Application('iTunes'); return app.pause(); }")
 endfunction
 
 function! thrasher#itunes#toggle()
-    let error = s:jxa("function run(argv) { var app = Application('iTunes'); return app.playpause(); }")
+    let l:error = s:jxa("function run(argv) { var app = Application('iTunes'); return app.playpause(); }")
 endfunction
 
 function! thrasher#itunes#stop()
-    let error = s:jxa("function run(argv) { var app = Application('iTunes'); return app.stop(); }")
+    let l:error = s:jxa("function run(argv) { var app = Application('iTunes'); return app.stop(); }")
 endfunction
 
 function! thrasher#itunes#next()
-    let error = s:jxa("function run(argv) { var app = Application('iTunes'); return app.nextTrack(); }")
+    let l:error = s:jxa("function run(argv) { var app = Application('iTunes'); return app.nextTrack(); }")
 endfunction
 
 function! thrasher#itunes#prev()
-    let error = s:jxa("function run(argv) { var app = Application('iTunes'); return app.backTrack(); }")
+    let l:error = s:jxa("function run(argv) { var app = Application('iTunes'); return app.backTrack(); }")
 endfunction
 
 function! thrasher#itunes#status()
@@ -162,7 +163,7 @@ function! thrasher#itunes#status()
 endfunction
 
 function! thrasher#itunes#notify(message)
-    let error = s:jxa("function run(argv) { let app = Application.currentApplication(); let info = '"  . a:message . "'; app.includeStandardAdditions = true; app.displayNotification(info, { withTitle: 'Thrasher' }); }")
+    let l:error = s:jxa("function run(argv) { let app = Application.currentApplication(); let info = '"  . a:message . "'; app.includeStandardAdditions = true; app.displayNotification(info, { withTitle: 'Thrasher' }); }")
 endfunction
 
 function! thrasher#itunes#refresh()

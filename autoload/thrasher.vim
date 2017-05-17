@@ -1,7 +1,8 @@
+scriptencoding utf-8
 " Location: autoload/thrasher.vim
 " Author:   Paul Meinhardt <https://github.com/pmeinhardt>
 
-if exists("g:autoloaded_thrasher")
+if exists('g:autoloaded_thrasher')
     finish
 endif
 let g:autoloaded_thrasher = 1
@@ -11,14 +12,14 @@ if !executable('osascript')
     finish
 endif
 
-if !exists("g:thrasher_online")
+if !exists('g:thrasher_online')
     " Browse all tracks (also not downloaded)
     " Not First World problem but I have been developing this code in Sumatra
     " with spotty internet at best and occasional power cuts
     let g:thrasher_online = 1
 endif
 
-if !exists(" g:thrasher_mode")
+if !exists(' g:thrasher_mode')
     " 0 - search iTunes Library by playlists (userPlaylists in Apple parlance)
     " 1 - search Apple Music playlists (subscriptionPlaylists)
     " there is potential for mode 2 - not coded into logic at the moment
@@ -28,39 +29,39 @@ endif
 
 " Configuration
 
-let s:bufname = "thrasher"
+let s:bufname = 'thrasher'
 
 let s:bufglobals = {
-            \   "guicursor": "a:blinkon0",
-            \   "hlsearch": 0,
-            \   "ignorecase": 1,
-            \   "imdisable": 1,
-            \   "insertmode": 0,
-            \   "langmap": "",
-            \   "magic": 1,
-            \   "maxfuncdepth": 200,
-            \   "mousefocus": 0,
-            \   "report": 9999,
-            \   "showcmd": 0,
-            \   "sidescroll": 0,
-            \   "sidescrolloff": 0,
-            \   "splitbelow": 1,
-            \   "timeout": 1,
-            \   "timeoutlen": 0,
-            \   "ttimeout": 0
+            \   'guicursor': 'a:blinkon0',
+            \   'hlsearch': 0,
+            \   'ignorecase': 1,
+            \   'imdisable': 1,
+            \   'insertmode': 0,
+            \   'langmap': '',
+            \   'magic': 1,
+            \   'maxfuncdepth': 200,
+            \   'mousefocus': 0,
+            \   'report': 9999,
+            \   'showcmd': 0,
+            \   'sidescroll': 0,
+            \   'sidescrolloff': 0,
+            \   'splitbelow': 1,
+            \   'timeout': 1,
+            \   'timeoutlen': 0,
+            \   'ttimeout': 0
             \ }
 
 let s:hl = {
-            \   "base":    "Comment",
-            \   "cursor":  "Constant",
-            \   "default": "Normal"
+            \   'base':    'Comment',
+            \   'cursor':  'Constant',
+            \   'default': 'Normal'
             \ }
 
 let s:modes = [
-            \   "any",
-            \   "artist",
-            \   "collection",
-            \   "track",
+            \   'any',
+            \   'artist',
+            \   'collection',
+            \   'track',
             \ ]
 
 " Variables
@@ -71,80 +72,80 @@ let s:cursorpos = [0, 1, 1, 0]
 let s:regglobals = {}
 
 let s:state = {
-            \   "player": "itunes",
-            \   "input": ["", "", ""],
-            \   "focus": 1,
-            \   "mode": s:modes[0],
-            \   "list": []
+            \   'player': 'itunes',
+            \   'input': ['', '', ''],
+            \   'focus': 1,
+            \   'mode': s:modes[0],
+            \   'list': []
             \ }
 
 " Commands
 
 function! s:dispatch(player, fname, ...)
-    return call("thrasher#" . a:player . "#" . a:fname, a:000)
+    return call('thrasher#' . a:player . '#' . a:fname, a:000)
 endfunction
 
 function! thrasher#search(query, mode)
-    return s:dispatch(s:state.player, "search", a:query, a:mode)
+    return s:dispatch(s:state.player, 'search', a:query, a:mode)
 endfunction
 
 function! thrasher#play(query)
-    return s:dispatch(s:state.player, "play", a:query)
+    return s:dispatch(s:state.player, 'play', a:query)
 endfunction
 
 " function! thrasher#play(...)
 "   let query = {}
 
 "   if a:0 > 0
-"     let query.artist = get(a:000, 0, "")
-"     let query.album = get(a:000, 1, "")
-"     let query.track = get(a:000, 2, "")
+"     let query.artist = get(a:000, 0, '')
+"     let query.album = get(a:000, 1, '')
+"     let query.track = get(a:000, 2, '')
 "   endif
 
-"   return s:dispatch(s:state.player, "play", query)
+"   return s:dispatch(s:state.player, 'play', query)
 " endfunction
 
 function! thrasher#pause()
-    return s:dispatch(s:state.player, "pause")
+    return s:dispatch(s:state.player, 'pause')
 endfunction
 
 function! thrasher#toggle()
-    return s:dispatch(s:state.player, "toggle")
+    return s:dispatch(s:state.player, 'toggle')
 endfunction
 
 function! thrasher#stop()
-    return s:dispatch(s:state.player, "stop")
+    return s:dispatch(s:state.player, 'stop')
 endfunction
 
 function! thrasher#next()
-    return s:dispatch(s:state.player, "next")
+    return s:dispatch(s:state.player, 'next')
 endfunction
 
 function! thrasher#prev()
-    return s:dispatch(s:state.player, "prev")
+    return s:dispatch(s:state.player, 'prev')
 endfunction
 
 function! thrasher#status()
-    let status = s:dispatch(s:state.player, "status")
+    let l:status = s:dispatch(s:state.player, 'status')
     " let track = status.track
     " let info = join([track.name, track.collection, track.artist], ", ")
     " if g:thrasher_verbose | echom status.state . ": " . info | endif
     " if g:thrasher_notify
-    "     return s:dispatch(s:state.player, "notify", status.state . ": " . info)
+    "     return s:dispatch(s:state.player, 'notify', status.state . ": " . info)
     " else
     "     return strpart(status.state . ": " . info, 0, 45)
     " endif
-    if status.state == "playing"
-        let track = status.track
-        let info = join([track.name, track.collection, track.artist], ", ")
-        return strpart(status.state . ": " . info, 0, 45)
+    if l:status.state ==# 'playing'
+        let l:track = l:status.track
+        let l:info = join([l:track.name, l:track.collection, l:track.artist], ', ')
+        return strpart(l:status.state . ': ' . l:info, 0, 45)
     else
-         return status.state
+         return l:status.state
     endif
 endfunction
 
 function! thrasher#refresh()
-    return s:dispatch(s:state.player, "refresh")
+    return s:dispatch(s:state.player, 'refresh')
 endfunction
 
 function! thrasher#refreshList()
@@ -162,7 +163,7 @@ function! thrasher#librarytoggle()
     else
         let g:thrasher_mode = 1
     endif
-    return s:dispatch(s:state.player, "refresh")
+    return s:dispatch(s:state.player, 'refresh')
 endfunction
 
 function! thrasher#onlinetoggle()
@@ -172,7 +173,7 @@ function! thrasher#onlinetoggle()
     else
         let g:thrasher_online = 1
     endif
-    return s:dispatch(s:state.player, "refresh")
+    return s:dispatch(s:state.player, 'refresh')
 endfunction
 
 " Interface/
@@ -181,21 +182,21 @@ function! thrasher#run()
     if s:active | return 0 | endif
     let s:active = 1
 
-    call s:dispatch(s:state.player, "init")
+    call s:dispatch(s:state.player, 'init')
     let s:state.list = thrasher#search({}, s:state.mode)
 
     noautocmd call s:open()
     call s:render(s:state)
-    call setpos(".", s:cursorpos)
+    call setpos('.', s:cursorpos)
 
     return 1
 endfunction
 
 function! thrasher#exit()
-    if s:active && bufnr("%") ==# s:bufnr && bufname("%") ==# s:bufname
-        let s:cursorpos = getpos(".")
+    if s:active && bufnr('%') ==# s:bufnr && bufname('%') ==# s:bufname
+        let s:cursorpos = getpos('.')
         noautocmd call s:close()
-        " nautocmd call s:dispatch(s:state.player, "exit")
+        " noautocmd call s:dispatch(s:state.player, 'exit')
         let s:active = 0
     return 1
     endif
@@ -205,20 +206,20 @@ endfunction
 
 function! s:open()
     " open new window (bottom)
-    silent! execute "keepalt botright 1new " . s:bufname
+    silent! execute 'keepalt botright 1new ' . s:bufname
 
     " store buffer information
-    let s:bufnr = bufnr("%")
+    let s:bufnr = bufnr('%')
     let s:winw = winwidth(0)
 
     " remove all abbreviations
     abclear <buffer>
 
     " backup and override globals
-    for [k, v] in items(s:bufglobals)
-        if exists("+" . k)
-            silent! execute "let s:regglobals['" . k . "'] = &" . k .
-                        \ " | let &" . k " = " . string(v)
+    for [l:k, l:v] in items(s:bufglobals)
+        if exists('+' . l:k)
+            silent! execute "let s:regglobals['" . l:k . "'] = &" . l:k .
+                        \ ' | let &' . l:k ' = ' . string(l:v)
         endif
     endfor
 
@@ -249,10 +250,10 @@ function! s:open()
     nnoremap <buffer> <silent> <s-tab> :<c-u>call <sid>togglefocus()<cr>
 
     " correct arrow keys
-    if has("termresponse") && v:termresponse =~? "\<esc>" ||
+    if has('termresponse') && v:termresponse =~? '\<esc>' ||
                 \ &term =~? '\vxterm|<k?vt|gnome|screen|linux|ansi|tmux'
-        for k in ["\A <up>", "\B <down>", "\C <right>", "\D <left>"]
-            execute "nnoremap <buffer> <silent> <esc>[" . k
+        for l:k in ['\A <up>', '\B <down>', '\C <right>', '\D <left>']
+            execute 'nnoremap <buffer> <silent> <esc>[' . l:k
         endfor
     endif
 
@@ -265,9 +266,9 @@ function! s:close()
     bunload! "" . s:bufname
 
     " restore globals
-    for k in keys(s:bufglobals)
-        if exists("+" . k)
-            silent! execute "let &" . k . " = s:regglobals['" . k . "']"
+    for l:k in keys(s:bufglobals)
+        if exists('+' . l:k)
+            silent! execute "let &" . l:k . " = s:regglobals['" . l:k . "']"
         endif
     endfor
 
@@ -311,17 +312,17 @@ function! s:focus()
     nnoremap <buffer> <silent> <c-u>    :<c-u>call <sid>delline()<cr>
     "
     " accept input (ascii range 32 through 126)
-    let mapcmd = 'nnoremap <buffer> <silent> <char-%d> ' .
+    let l:mapcmd = 'nnoremap <buffer> <silent> <char-%d> ' .
                 \ ':<c-u>call <sid>%s("%s")<cr>'
 
-    let keyfn = 'keypress'
+    let l:keyfn = 'keypress'
 
-    for code in range(32, 33) + range(35, 91) + range(93, 123) + range(125, 126)
-        execute printf(mapcmd, code, keyfn, nr2char(code))
+    for l:code in range(32, 33) + range(35, 91) + range(93, 123) + range(125, 126)
+        execute printf(l:mapcmd, l:code, l:keyfn, nr2char(l:code))
     endfor
 
-    for code in [34, 92, 124]
-        execute printf(mapcmd, code, keyfn, escape(nr2char(code), '"|\'))
+    for l:code in [34, 92, 124]
+        execute printf(l:mapcmd, l:code, l:keyfn, escape(nr2char(l:code), '"|\'))
     endfor
 
     " update prompt
@@ -348,10 +349,10 @@ function! s:unfocus()
     nunmap <buffer> <c-u>
     " 
     " disable prompt input
-    let unmapcmd = 'nunmap <buffer> <silent> <char-%d>'
+    let l:unmapcmd = 'nunmap <buffer> <silent> <char-%d>'
 
-    for code in range(32, 126)
-        execute printf(unmapcmd, code)
+    for l:code in range(32, 126)
+        execute printf(l:unmapcmd, l:code)
     endfor
 
     " update prompt
@@ -369,14 +370,14 @@ endfunction
 " Control
 
 function! s:research(state)
-    let querystr = join(a:state.input, "")
-    let mode = a:state.mode
-    let a:state.list = thrasher#search(querystr, mode)
+    let l:querystr = join(a:state.input, '')
+    let l:mode = a:state.mode
+    let a:state.list = thrasher#search(l:querystr, l:mode)
 endfunction
 
 function! s:modeswitch()
-    let idx = (index(s:modes, s:state.mode) + 1) % len(s:modes)
-    let s:state.mode = s:modes[idx]
+    let l:idx = (index(s:modes, s:state.mode) + 1) % len(s:modes)
+    let s:state.mode = s:modes[l:idx]
 
     call s:research(s:state)
 
@@ -386,10 +387,10 @@ endfunction
 
 function! s:accept()
     if empty(s:state.list) | return | endif
-    let index = line(".") - 1
-    " call thrasher#play({"obj": s:state.list[index]})
-    if g:thrasher_verbose | echom "Playing from collection: " .  s:state.list[index]['collection'] | endif
-    call thrasher#play(s:state.list[index])
+    let l:index = line('.') - 1
+    " call thrasher#play({"obj": s:state.list[l:index]})
+    if g:thrasher_verbose | echom 'Playing from collection: ' .  s:state.list[l:index]['collection'] | endif
+    call thrasher#play(s:state.list[l:index])
 endfunction
 
 " Rendering
@@ -405,24 +406,24 @@ endfunction
 function! s:renderbuffer(state)
     setlocal modifiable
 
-    let tracks = a:state.list
-    let length = len(tracks)
+    let l:tracks = a:state.list
+    let l:length = len(l:tracks)
 
-    silent! execute "%d _ | res" length
+    silent! execute '%d _ | res' l:length
 
-    if empty(tracks)
+    if empty(l:tracks)
         setlocal nocursorline
-        if !exists("g:thrasher_refreshLibrary") 
-            call setline(1, "NO RESULTS")
+        if !exists('g:thrasher_refreshLibrary') 
+            call setline(1, 'NO RESULTS')
         else
-            call setline(1, "Getting playlists and tracks from iTunes Library for the first time may take a while.")
+            call setline(1, 'Getting playlists and tracks from iTunes Library for the first time may take a while.')
         endif
     else
         setlocal cursorline
-        let i = 1
-        for t in tracks
-            call setline(i, t.collection . ' : ' . t.name . ' [' . t.artist . ']' )
-            let i += 1
+        let l:i = 1
+        for l:t in l:tracks
+            call setline(l:i, l:t.collection . ' : ' . l:t.name . ' [' . l:t.artist . ']' )
+            let l:i += 1
         endfor
     endif
 
@@ -433,14 +434,14 @@ endfunction
 
 function! s:renderstatus(state)
 
-    let l:library = " [Apple Music]"
-    if !g:thrasher_mode | let l:library = " [iTunes Library]" | endif
-    let l:online = " [On-line] "
-    if !g:thrasher_online | let l:online = " [Off-line] " | endif
+    let l:library = ' [Apple Music]'
+    if !g:thrasher_mode | let l:library = ' [iTunes Library]' | endif
+    let l:online = ' [On-line] '
+    if !g:thrasher_online | let l:online = ' [Off-line] ' | endif
     let l:status = thrasher#status()
 
-    let l:base = "thrasher [ " . join(s:modes, " ") . " ] " . len(a:state.list)  . l:library . l:online . l:status
-    let l:line = substitute(l:base, a:state.mode, "<" . a:state.mode . ">", "")
+    let l:base = 'thrasher [ ' . join(s:modes, ' ') . ' ] ' . len(a:state.list)  . l:library . l:online . l:status
+    let l:line = substitute(l:base, a:state.mode, '<' . a:state.mode . '>', '')
 
     let &l:statusline = l:line
 endfunction
@@ -448,29 +449,29 @@ endfunction
 " Prompt
 
 function! s:renderprompt(state)
-    let input = copy(a:state.input)
+    let l:input = copy(a:state.input)
 
-    let [hldefault, hlcursor, hlbase] = [s:hl.default, s:hl.cursor, s:hl.base]
+    let [l:hldefault, l:hlcursor, l:hlbase] = [s:hl.default, s:hl.cursor, s:hl.base]
 
-    if input[1] ==# " "
-        let hlcursor = hlbase
-        let input[1] = "_"
+    if l:input[1] ==# ' '
+        let l:hlcursor = l:hlbase
+        let l:input[1] = '_'
     endif
 
-    if has("multi_byte")
-        let prompt = a:state.focus ? "⚡️>>" : "🎸__"
+    if has('multi_byte')
+        let l:prompt = a:state.focus ? '⚡️>>' : '🎸__'
     else
-        let prompt = a:state.focus ? ">>>" : "---"
+        let l:prompt = a:state.focus ? '>>>' : '---'
     endif
 
-    execute "echoh " . hlbase . " | echon '" . prompt . "'" .
-                \ " | echoh " . hldefault . " | echon '" . input[0] . "'" .
-                \ " | echoh " . hlcursor  . " | echon '" . input[1] . "'" .
-                \ " | echoh " . hldefault . " | echon '" . input[2] . "'" .
+    execute "echoh " . l:hlbase . " | echon '" . l:prompt . "'" .
+                \ " | echoh " . l:hldefault . " | echon '" . input[0] . "'" .
+                \ " | echoh " . l:hlcursor  . " | echon '" . input[1] . "'" .
+                \ " | echoh " . l:hldefault . " | echon '" . input[2] . "'" .
                 \ " | echoh None"
 
-    if empty(input[1])
-        execute "echoh " . hlbase . " | echon '_' | echoh None"
+    if empty(l:input[1])
+        execute "echoh " . l:hlbase . " | echon '_' | echoh None"
     endif
 endfunction
 
