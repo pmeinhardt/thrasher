@@ -1,7 +1,7 @@
 *thrasher.txt* A heavy-metal music player for vim
 
 Author:  Paul Meinhardt <https://github.com/pmeinhardt>
-License: –
+License: MIT
 
                                                        ,'
                                                     .c0:
